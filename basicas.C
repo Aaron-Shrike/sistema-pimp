@@ -2,7 +2,8 @@
 #include <conio.h>
 #include <string.h>
 #include <math.h>
-#include <iostream.h>
+//#include <iostream.h>
+#include <iostream>
 #include <stdlib.h>
 #include <ctype.h>
 
@@ -108,18 +109,18 @@ void leeFecha(char msje[],Fecha &F)
    printf("\n%s",msje);
 	do
 	{
-		cout<<"\n\tDia [dd]:    ";
-		cin>>F.Dia;
+		printf("\n\tDia [dd]:    ");
+		scanf("%d",&F.Dia);
 	}while(!(F.Dia>0 && F.Dia<=31));
 	do
 	{
-		cout<<"\tMes [mm]:    ";
-		cin>>F.Mes;
+		printf("\tMes [mm]:    ");
+		scanf("%d",&F.Mes);
 	}while(!(F.Mes>0 && F.Mes<=12));
 	do
 	{
-		cout<<"\tA¤o [aaaa]:  ";
-		cin>>F.Anio;
+		printf("\tAnio [aaaa]:  ");
+		scanf("%d",&F.Anio);
 	}while(!(F.Anio>1900 && F.Anio<=2020));
 }
 
@@ -128,9 +129,9 @@ void leeFecha(char msje[],Fecha &F)
 void mostrarFecha(char msje[],Fecha &F)
 {
    printf("\%s",msje);
-	cout<<"  "<<F.Dia;
-	cout<<" / "<<F.Mes;
-	cout<<" / "<<F.Anio;
+	printf("  %d",F.Dia);
+	printf(" / %d",F.Mes);
+	printf(" / %d",F.Anio);
 }
 
 //comparar fecha
