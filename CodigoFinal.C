@@ -1,4 +1,4 @@
-#include "basicas.cpp"
+#include "basicas.C"
 
 //Datos con límite de caracteres
 #define MAXCODIGO 10
@@ -3031,7 +3031,7 @@ void menu(ListaMarca &LM,ListaCategoria &LCA,ListaColor &LC,ListaProducto &LP,Li
    }while(!(op==5));
 }
 
-void main()
+main()
 {
 	ListaMarca LM;
    ListaCategoria LCA;
