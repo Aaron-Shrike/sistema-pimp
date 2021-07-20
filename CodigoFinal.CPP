@@ -1,0 +1,3153 @@
+#include "basicas.cpp"
+
+//Datos con limite de caracteres
+#define MAXCODIGO 10
+#define MAXCAMPO 4
+#define MAXRUC 12                                  
+#define MAXTELEFONO 10
+#define MAXFACTURA 7
+#define MAXDNI 9
+
+//Listas Dinamicas
+//Marca,Categoria,Color
+#define DELTA 5
+
+//Campos Categorizados
+#define MAXGENERO 3  
+
+#define MAXSTOCK 1000000
+
+/*Listas Enlazadas:
+	Producto
+   Proveedor
+   Trabajador
+   Factura
+   Detalle compra
+   TicketSalida
+   Movimientos
+*/
+
+char TGenero[MAXGENERO][LIM]={"Hombre","Mujer","Unisex"};
+
+//MARCAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+struct Marca
+{
+	char codMarca[MAXCAMPO];
+   	char desMarca[LIM];
+   	int estado;
+};
+
+void iniciaMarca(Marca &M)
+{
+	M.codMarca[0]=NULL;
+  	M.desMarca[0]=NULL;
+   	M.estado=0;
+}
+
+struct ListaMarca
+{
+	Marca *Data;
+   	int N;
+   	int Max;
+};
+
+void iniciaListaMarca(ListaMarca &LM)
+{
+	LM.Data=NULL;
+   	LM.N=0;
+   	LM.Max=0;
+}
+
+void leeMarca(Marca &M,ListaMarca &LM)
+{
+	int flag;
+
+	do
+   	{
+		do
+      	{
+	   		printf("\n Ingrese codigo(3 digitos): ");
+	      	fflush(stdin);
+	      	gets(M.codMarca);
+	   	}while(!(strlen(M.codMarca)==MAXCAMPO-1));
+      	flag=0;
+      	for(int i=0;i<LM.N;i++)
+	      	if(strcmpi(M.codMarca,LM.Data[i].codMarca)==0)
+	         	flag=1;
+	    if(flag==1)
+	      	printf("\n   *ERROR: El codigo se ha ingresado anteriormente\n");
+   	}while(flag==1);
+   	printf("\n Ingrese descripcion: ");
+   	fflush(stdin);
+   	gets(M.desMarca);
+   	M.estado=1;
+}
+
+void mostrarMarca(Marca &M,int y)
+{
+	if(y>-1)
+		gotoxy(2,y);
+	printf(" %s",M.codMarca);
+	if(y>-1)
+		gotoxy(11,y);
+	printf(" %s",M.desMarca);
+	if(y>-1)
+		gotoxy(27,y);
+	if(M.estado==1)
+		printf(" Activa");
+	else
+		printf(" Inactiva");
+}
+
+void creceListaMarca(ListaMarca &LM)
+{
+	Marca *Temp;
+   	Temp=new Marca[LM.Max+DELTA];
+
+   	for(int i=0;i<LM.N;i++)
+   		Temp[i]=LM.Data[i];
+   	delete [] LM.Data;
+   	LM.Data=Temp;
+   	LM.Max+=DELTA;
+}
+
+void insertaMarca(ListaMarca &LM,Marca &M)
+{
+	if(LM.N==LM.Max)
+   		creceListaMarca(LM);
+   	LM.Data[LM.N]=M;
+   	LM.N++;
+}
+
+void leeListaMarca(ListaMarca &LM)
+{
+	Marca M;
+
+   	do
+   	{
+   		iniciaMarca(M);
+      	leeMarca(M,LM);
+      	insertaMarca(LM,M);
+   	}while(continuar("Desea continuar? (S/N): ")=='S');
+}
+
+void mostrarListaMarca(ListaMarca &LM)
+{
+	int y=24;
+
+	if(LM.N>0)
+	{
+		printf("\n Codigo   Descripcion     Estado");
+		printf("\n========================================");
+		for(int i=0;i<LM.N;i++)
+		{
+			mostrarMarca(LM.Data[i],y);
+			y++;
+		}
+	}
+	else
+		printf("\nNo hay datos...");
+	getch();
+}
+
+void modificaMarca(ListaMarca &LM)
+{
+	int flag=0;
+   	char cod[MAXCAMPO];
+
+   	if(LM.N>0)
+   	{
+   		printf("\n Codigo  |  Descripcion");
+      	printf("\n========================");
+      	for(int i=0;i<LM.N;i++)
+      		printf("\n  %s        %s",LM.Data[i].codMarca,LM.Data[i].desMarca);
+   		do
+      	{
+      		printf("\n\n Ingrese codigo de marca a modificar(3 digitos): ");
+         	fflush(stdin);
+         	gets(cod);
+      	}while(!(strlen(cod)==MAXCAMPO-1));
+      	for(int i=0;i<LM.N;i++)
+      	{
+	      	if(strcmpi(cod,LM.Data[i].codMarca)==0)
+	        {
+	         	flag=1;
+	            if(continuar("Desea modificar la descripcion de este producto? (S/N): ")=='S')
+	            {
+	            	printf("\n Ingrese nueva descripcion: ");
+	      			fflush(stdin);
+	     	 		gets(LM.Data[i].desMarca);
+	               	printf("\n    Accion exitosa");
+	            }
+	            else
+	            	printf("\n    Accion interrumpida");
+	        }
+      	}
+      	if(flag==0)
+      		printf("\nEl codigo no ha sido registrado");
+   	}
+   	else
+   		printf("\nNo hay datos...");
+   	getch();
+}
+
+void bajaMarca(ListaMarca &LM)
+{
+	int flag=0;
+   	char cod[MAXCAMPO];
+
+   	if(LM.N>0)
+   	{
+   		printf("\n Codigo  |  Descripcion");
+      	printf("\n========================");
+      	for(int i=0;i<LM.N;i++)
+      		if(LM.Data[i].estado==1)
+         		printf("\n  %s        %s",LM.Data[i].codMarca,LM.Data[i].desMarca);
+   		do
+      	{
+      		printf("\n\n Ingrese codigo de marca a dar de baja(3 digitos): ");
+         	fflush(stdin);
+         	gets(cod);
+      	}while(!(strlen(cod)==MAXCAMPO-1));
+      	for(int i=0;i<LM.N;i++)
+      	{
+      		if(strcmpi(cod,LM.Data[i].codMarca)==0)
+         	{
+         		flag=1;
+            	if(LM.Data[i].estado==1)
+            	{
+            		if(continuar("Desea dar de baja esta marca? (S/N): ")=='S')
+            		{
+            			LM.Data[i].estado=0;
+                  	printf("\n    Accion exitosa");
+            		}
+               		else
+               		printf("\n    Accion interrumpida");
+            	}
+            else
+            	printf("\nLa marca ya se encuentra inactiva");
+        	}
+      	}
+      	if(flag==0)
+      		printf("\nEl codigo no ha sido registrado");
+   	}
+   	else
+   		printf("\nNo hay datos...");
+   	getch();
+}
+
+//CATEGORIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+struct Categoria
+{
+	char codCategoria[MAXCAMPO];
+	char desCategoria[LIM];
+	int estado;
+};
+
+void iniciaCategoria(Categoria &C)
+{
+	C.codCategoria[0]=NULL;
+	C.desCategoria[0]=NULL;
+	C.estado=0;
+}
+
+struct ListaCategoria
+{
+	Categoria *Data;
+	int N;
+	int Max;
+};
+
+void iniciaListaCategoria(ListaCategoria &LCA)
+{
+	LCA.Data=NULL;
+	LCA.N=0;
+	LCA.Max=0;
+}
+
+void leeCategoria(Categoria &C,ListaCategoria &LCA)
+{
+	int flag;
+
+	do
+   	{
+		do
+      	{
+			printf("\n Ingrese codigo(3 digitos): ");
+			fflush(stdin);
+			gets(C.codCategoria);
+		}while(!(strlen(C.codCategoria)==MAXCAMPO-1));
+      	flag=0;
+      	for(int i=0;i<LCA.N;i++)
+      		if(strcmpi(C.codCategoria,LCA.Data[i].codCategoria)==0)
+         		flag=1;
+      	if(flag==1)
+      		printf("\n    *ERROR: El codigo se ha ingresado anteriormente\n");
+   	}while(flag==1);
+	printf("\n Ingrese descripcion: ");
+	fflush(stdin);
+	gets(C.desCategoria);
+	C.estado=1;
+}
+
+void mostrarCategoria(Categoria &C,int y)
+{
+	if(y>-1)
+		gotoxy(2,y);
+	printf(" %s",C.codCategoria);
+	if(y>-1)
+		gotoxy(11,y);
+	printf(" %s",C.desCategoria);
+	if(y>-1)
+		gotoxy(27,y);
+	if(C.estado==1)
+		printf(" Activa");
+	else
+		printf(" Inactiva");
+}
+
+void creceListaCategoria(ListaCategoria &LCA)
+{
+	Categoria *Temp;
+	Temp=new Categoria[LCA.Max+DELTA];
+
+	for(int i=0;i<LCA.N;i++)
+		Temp[i]=LCA.Data[i];
+	delete [] LCA.Data;
+	LCA.Data=Temp;
+	LCA.Max+=DELTA;
+}
+
+void insertaCategoria(ListaCategoria &LCA,Categoria &C)
+{
+	if(LCA.N==LCA.Max)
+		creceListaCategoria(LCA);
+	LCA.Data[LCA.N]=C;
+	LCA.N++;
+}
+
+void leeListaCategoria(ListaCategoria &LCA)
+{
+	Categoria C;
+
+	do
+	{
+		iniciaCategoria(C);
+		leeCategoria(C,LCA);
+		insertaCategoria(LCA,C);
+	}while(continuar("Desea continuar? (S/N): ")=='S');
+}
+
+void mostrarListaCategoria(ListaCategoria &LCA)
+{
+	int y=24;
+
+	if(LCA.N>0)
+	{
+		printf("\n Codigo   Descripcion     Estado");
+		printf("\n========================================");
+		for(int i=0;i<LCA.N;i++)
+		{
+			mostrarCategoria(LCA.Data[i],y);
+			y++;
+		}
+	}
+	else
+		printf("\nNo hay datos...");
+	getch();
+}
+
+void modificaCategoria(ListaCategoria &LCA)
+{
+	int flag=0;
+	char cod[MAXCAMPO];
+
+	if(LCA.N>0)
+   	{
+      	printf("\n Codigo  |  Descripcion");
+      	printf("\n========================");
+      	for(int i=0;i<LCA.N;i++)
+      		printf("\n  %s        %s",LCA.Data[i].codCategoria,LCA.Data[i].desCategoria);
+		do
+      	{
+			printf("\n\n Ingrese codigo de categoria a modificar(3 digitos): ");
+			fflush(stdin);
+			gets(cod);
+		}while(!(strlen(cod)==MAXCAMPO-1));
+		for(int i=0;i<LCA.N;i++)
+      	{
+			if(strcmpi(cod,LCA.Data[i].codCategoria)==0)
+         	{
+				flag=1;
+				if(continuar("Desea modificar la descripcion de esta categoria? (S/N): ")=='S'){
+					printf("\n Ingrese nueva descripcion: ");
+					fflush(stdin);
+					gets(LCA.Data[i].desCategoria);
+					printf("\n    Accion exitosa");
+				}
+				else
+					printf("\n    Accion interrumpida");
+			}
+		}
+		if(flag==0)
+			printf("\nEl codigo no ha sido registrado");
+	}
+	else
+		printf("\nNo hay datos...");
+	getch();
+}
+
+void bajaCategoria(ListaCategoria &LCA)
+{
+	int flag=0;
+	char cod[MAXCAMPO];
+
+	if(LCA.N>0)
+   	{	
+      	printf("\n Codigo  |  Descripcion");
+      	printf("\n========================");
+   		for(int i=0;i<LCA.N;i++)
+         	if(LCA.Data[i].estado==1)
+   				printf("\n  %s        %s",LCA.Data[i].codCategoria,LCA.Data[i].desCategoria);
+		do
+      	{
+			printf("\n\n Ingrese codigo de categoria a dar de baja(3 digitos): ");
+			fflush(stdin);
+			gets(cod);
+		}while(!(strlen(cod)==MAXCAMPO-1));
+		for(int i=0;i<LCA.N;i++)
+      	{
+			if(strcmpi(cod,LCA.Data[i].codCategoria)==0)
+         	{
+				flag=1;
+				if(LCA.Data[i].estado==1)
+            	{
+					if(continuar("Desea dar de baja esta categoria? (S/N): ")=='S')
+               		{
+						LCA.Data[i].estado=0;
+						printf("\n    Accion exitosa");
+					}
+					else
+						printf("\n    Accion interrumpida");
+				}
+				else
+					printf("\nLa categoria ya se encuentra inactiva");
+			}
+		}
+		if(flag==0)
+			printf("\nEl codigo no ha sido registrado");
+	}
+	else
+		printf("\nNo hay datos...");
+	getch();
+}
+
+//COLOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORRRRR
+
+struct Color
+{
+	char codColor[MAXCAMPO];
+   	char desColor[LIM];
+   	int estado;
+};
+
+void iniciaColor(Color &C)
+{
+	C.codColor[0]=NULL;
+   	C.desColor[0]=NULL;
+   	C.estado=0;
+}
+
+struct ListaColor
+{
+	Color *Data;
+   	int N;
+   	int Max;
+};
+
+void iniciaListaColor(ListaColor &LC)
+{
+	LC.Data=NULL;
+   	LC.N=0;
+   	LC.Max=0;
+}
+
+void leeColor(Color &C,ListaColor &LC)
+{
+	int flag;
+
+	do
+   	{
+		do
+   		{
+	   		printf("\n Ingrese codigo(3 digitos): ");
+	      	fflush(stdin);
+	      	gets(C.codColor);
+  	 	}while(!(strlen(C.codColor)==MAXCAMPO-1));
+      	flag=0;
+      	for(int i=0;i<LC.N;i++)
+      		if(strcmpi(C.codColor,LC.Data[i].codColor)==0)
+         		flag=1;
+      	if(flag==1)
+      		printf("\n    *ERROR: El codigo se ha ingresado anteriormente\n");
+   	}while(flag==1);
+   	printf("\n Ingrese descripcion: ");
+   	fflush(stdin);
+   	gets(C.desColor);
+   	C.estado=1;
+}
+
+void mostrarColor(Color &C,int y)
+{
+	if(y>-1)
+		gotoxy(2,y);
+	printf(" %s",C.codColor);
+	if(y>-1)
+		gotoxy(11,y);
+	printf(" %s",C.desColor);
+	if(y>-1)
+		gotoxy(27,y);
+	if(C.estado==1)
+		printf(" Activo");
+	else
+		printf(" Inactivo");
+}
+
+void creceListaColor(ListaColor &LC)
+{
+	Color *Temp;
+   	Temp=new Color[LC.Max+DELTA];
+
+   	for(int i=0;i<LC.N;i++)
+   		Temp[i]=LC.Data[i];
+   	delete [] LC.Data;
+   	LC.Data=Temp;
+   	LC.Max+=DELTA;
+}
+
+void insertaColor(ListaColor &LC,Color &C)
+{
+	if(LC.N==LC.Max)
+   		creceListaColor(LC);
+   	LC.Data[LC.N]=C;
+   	LC.N++;
+}
+
+void leeListaColor(ListaColor &LC)
+{
+	Color C;
+
+   	do
+   	{
+   		iniciaColor(C);
+      	leeColor(C,LC);
+      	insertaColor(LC,C);
+   	}while(continuar("Desea continuar? (S/N): ")=='S');
+}
+
+void mostrarListaColor(ListaColor &LC)
+{
+	int y=24;
+
+	if(LC.N>0)
+	{
+		printf("\n Codigo   Descripcion     Estado");
+		printf("\n========================================");
+		for(int i=0;i<LC.N;i++)
+		{
+			mostrarColor(LC.Data[i],y);
+			y++;
+		}
+	}
+	else
+		printf("\nNo hay datos...");
+	getch();
+}
+
+void modificaColor(ListaColor &LC)
+{
+	int flag=0;
+   	char cod[MAXCAMPO];
+
+   	if(LC.N>0)
+   	{
+   		printf("\n Codigo  |  Descripcion");
+      	printf("\n========================");
+      	for(int i=0;i<LC.N;i++)
+      		printf("\n  %s        %s",LC.Data[i].codColor,LC.Data[i].desColor);
+   		do
+      	{
+      		printf("\n\n Ingrese codigo de color a modificar(3 digitos): ");
+         	fflush(stdin);
+         	gets(cod);
+      	}while(!(strlen(cod)==MAXCAMPO-1));
+      	for(int i=0;i<LC.N;i++)
+      	{
+      		if(strcmpi(cod,LC.Data[i].codColor)==0)
+         	{
+         		flag=1;
+            	if(continuar("Desea modificar la descripcion de este producto? (S/N): ")=='S')
+            	{
+            		printf("\n Ingrese nueva descripcion: ");
+      				fflush(stdin);
+     	 			gets(LC.Data[i].desColor);
+               		printf("\n    Accion exitosa");
+            	}
+            	else
+            		printf("\n    Accion interrumpida");
+         	}
+      	}
+      	if(flag==0)
+      		printf("\nEl codigo no ha sido registrado");
+   	}
+   	else
+   		printf("\nNo hay datos...");
+   getch();
+}
+
+void bajaColor(ListaColor &LC)
+{
+	int flag=0;
+   	char cod[MAXCAMPO];
+
+   	if(LC.N>0)
+   	{
+   		printf("\n Codigo  |  Descripcion");
+    	printf("\n========================");
+      	for(int i=0;i<LC.N;i++)
+         	if(LC.Data[i].estado==1)
+   				printf("\n  %s        %s",LC.Data[i].codColor,LC.Data[i].desColor);
+   		do
+      	{
+      		printf("\n\n Ingrese codigo de color a dar de baja(3 digitos): ");
+         	fflush(stdin);
+         	gets(cod);
+      	}while(!(strlen(cod)==MAXCAMPO-1));
+      	for(int i=0;i<LC.N;i++)
+      	{
+      		if(strcmpi(cod,LC.Data[i].codColor)==0)
+         	{
+         		flag=1;
+            	if(LC.Data[i].estado==1)
+            	{
+            		if(continuar("Desea dar de baja este color? (S/N): ")=='S')
+            		{
+            			LC.Data[i].estado=0;
+                  		printf("\n    Accion exitosa");
+            		}
+               	else
+               		printf("\n    Accion interrumpida");
+            }
+            else
+            	printf("\nEl color ya se encuentra inactivo");
+         	}
+      	}
+      	if(flag==0)
+      		printf("\nEl codigo no ha sido registrado");
+   	}
+   	else
+   		printf("\nNo hay datos...");
+   	getch();
+}
+
+//PRODUCTOOOOOOOOOOOOOOOOOOOO
+
+struct Producto
+{
+	char codigo[MAXCODIGO];
+	char descripcion[LIM];
+	char codMarca[MAXCAMPO];
+	int genero;
+	char codCategoria[MAXCAMPO];
+	int talla;
+	char codColor[MAXCAMPO];
+	float precio;
+	int stock;
+	int stockminimo;
+	int estado;
+};
+
+void iniciaProducto(Producto &P)
+{
+	P.codigo[0]=NULL;
+	P.descripcion[0]=NULL;
+	P.codMarca[0]=NULL;
+	P.genero=0;
+	P.codCategoria[0]=NULL;
+	P.talla;
+	P.codColor[0]=NULL;
+	P.precio=0.0;
+	P.stock=0;
+	P.stockminimo=0;
+	P.estado=0;
+}
+
+struct NodoProducto
+{
+	Producto P;
+	NodoProducto *sgte;
+};
+
+struct ListaProducto
+{
+	NodoProducto *cab;
+	int N;
+};
+
+void iniciaListaProducto(ListaProducto &LP)
+{
+	LP.cab=NULL;
+	LP.N=0;
+}
+
+void leeProducto(Producto &P,ListaProducto &LP,ListaMarca &LM,ListaCategoria &LCA,ListaColor &LC)
+{
+   int flag,flagmarca,flagcategoria,flagcolor;
+
+	NodoProducto *Aux;
+
+	do
+   	{
+		do
+      	{
+			printf("\n Ingrese codigo(9 digitos): ");
+			fflush(stdin);
+			gets(P.codigo);
+		}while(!(strlen(P.codigo)==MAXCODIGO-1));
+		flag=0;
+		Aux=LP.cab;
+		while(Aux!=NULL)
+      	{
+			if(stricmp(P.codigo,Aux->P.codigo)==0)
+				flag=1;
+			Aux=Aux->sgte;
+		}
+		if(flag==1)
+			printf("\n    *ERROR: El Codigo se ha ingresado anteriormente\n");
+	}while(!(flag==0));
+	printf("\n Ingrese descripcion: ");
+	fflush(stdin);
+	gets(P.descripcion);
+   	printf("\n Codigo  |  Descripcion");
+   	printf("\n========================");
+   	for(int i=0;i<LM.N;i++)
+   		if(LM.Data[i].estado==1)
+   			printf("\n  %s        %s",LM.Data[i].codMarca,LM.Data[i].desMarca);
+   	do
+   	{
+		do
+      	{
+   			printf("\n\n Ingrese codigo de marca(3 digitos): ");
+   			fflush(stdin);
+   			gets(P.codMarca);
+   		}while(!(strlen(P.codMarca)==MAXCAMPO-1));
+      	flagmarca=0;
+      	for(int i=0;i<LM.N;i++)
+      		if(strcmpi(P.codMarca,LM.Data[i].codMarca)==0)
+         		flagmarca=1;
+      	if(flagmarca==0)
+      		printf("\n    *ERROR: La marca no ha sido registrada\n");
+   	}while(flagmarca==0);
+	P.genero=validaTabla("\n Ingrese genero: ",TGenero,MAXGENERO);
+   	printf("\n Codigo  |  Descripcion");
+   	printf("\n========================");
+   	for(int i=0;i<LCA.N;i++)
+   		if(LCA.Data[i].estado==1)
+   			printf("\n  %s        %s",LCA.Data[i].codCategoria,LCA.Data[i].desCategoria);
+   	do
+   	{
+		do
+      	{
+   			printf("\n\n Ingrese codigo de categoria(3 digitos): ");
+   			fflush(stdin);
+   			gets(P.codCategoria);
+   		}while(!(strlen(P.codCategoria)==MAXCAMPO-1));
+      	flagcategoria=0;
+      	for(int i=0;i<LCA.N;i++)
+      		if(strcmpi(P.codCategoria,LCA.Data[i].codCategoria)==0)
+         		flagcategoria=1;
+      	if(flagcategoria==0)
+      		printf("\n    *ERROR: La categoria no ha sido registrada\n");
+   	}while(flagcategoria==0);
+	P.talla=leeEntero("\n Ingrese talla[35-47]: ",35,47);
+	printf("\n Codigo  |  Descripcion");
+   	printf("\n========================");
+    for(int i=0;i<LC.N;i++)
+		if(LC.Data[i].estado==1)
+   			printf("\n  %s        %s",LC.Data[i].codColor,LC.Data[i].desColor);
+   	do
+   	{
+		do
+      	{
+   			printf("\n\n Ingrese codigo de color(3 digitos): ");
+   			fflush(stdin);
+   			gets(P.codColor);
+   		}while(!(strlen(P.codColor)==MAXCAMPO-1));
+      	flagcolor=0;
+      	for(int i=0;i<LC.N;i++)
+      		if(strcmpi(P.codColor,LC.Data[i].codColor)==0)
+         		flagcolor=1;
+      	if(flagcolor==0)
+      		printf("\n    *ERROR: El color no ha sido registrado\n");
+   	}while(flagcolor==0);
+	P.precio=leeReal("\n Ingrese precio de venta[60-1,600]: ",60,1600);
+	P.stockminimo=leeEntero("\n Ingrese stock minimo: ",1,MAXSTOCK);
+	P.estado=1;
+}
+
+void mostrarProducto(Producto &P,ListaMarca &LM,ListaCategoria &LCA,ListaColor &LC,int y)
+{
+	int pos;
+
+   	gotoxy(2,y);
+	printf("%s",P.codigo);
+   	gotoxy(13,y);
+	printf("%s",P.descripcion);
+   	gotoxy(28,y);
+   	for(int i=0;i<LM.N;i++)
+   		if(strcmpi(P.codMarca,LM.Data[i].codMarca)==0)
+      		pos=i;
+	printf("%s",LM.Data[pos].desMarca);
+   	gotoxy(40,y);
+	printf("%s",TGenero[P.genero-1]);
+   	gotoxy(49,y);
+   	for(int i=0;i<LCA.N;i++)
+   		if(strcmpi(P.codCategoria,LCA.Data[i].codCategoria)==0)
+      		pos=i;
+	printf("%s",LCA.Data[pos].desCategoria);
+   	gotoxy(63,y);
+	printf("%d",P.talla);
+   	gotoxy(71,y);
+   	for(int i=0;i<LC.N;i++)
+   		if(strcmpi(P.codColor,LC.Data[i].codColor)==0)
+      		pos=i;
+	printf("%s",LC.Data[pos].desColor);
+   	gotoxy(87,y);
+	printf("%.2f",P.precio);
+   	gotoxy(98,y);
+	if(P.estado==1)
+		printf("Activo");
+	else
+		printf("Inactivo");
+}
+
+void insertaProducto(ListaProducto &LP,Producto &P,NodoProducto *&Aux)
+{
+	NodoProducto *Dato;
+
+	Dato=new NodoProducto;
+	Dato->P=P;
+	if(Aux==NULL)
+   	{
+		Dato->sgte=LP.cab;
+		LP.cab=Dato;
+	}
+	else
+   	{
+		Dato->sgte=Aux->sgte;
+		Aux->sgte=Dato;
+	}
+	LP.N++;
+	Aux=Dato;
+}
+
+void leeListaProducto(ListaProducto &LP,ListaMarca &LM,ListaCategoria &LCA,ListaColor &LC)
+{
+	Producto P;
+
+	NodoProducto *Aux=LP.cab;
+
+	do
+   	{
+		iniciaProducto(P);
+		leeProducto(P,LP,LM,LCA,LC);
+		insertaProducto(LP,P,Aux);
+	}while(continuar("Desea Continuar(S/N): ")=='S');
+}
+
+void mostrarListaProducto(ListaProducto &LP,ListaMarca &LM,ListaCategoria &LCA,ListaColor &LC)
+{
+	int y=24;
+
+	NodoProducto *Aux=LP.cab;
+
+	if(LP.N>0)
+   	{
+      	printf("\n Codigo     Descripcion    Marca       Genero   Categoria     Talla   Color           Precio     Estado");
+      	printf("\n=========================================================================================================\n");
+		while(Aux!=NULL)
+      	{
+			mostrarProducto(Aux->P,LM,LCA,LC,y);
+         	y++;
+			Aux=Aux->sgte;
+		}
+	}
+	else
+		printf("\nNo Hay Datos...");
+	getch();
+}
+
+
+void modificaProducto(ListaProducto &LP,ListaMarca &LM,ListaCategoria &LCA, ListaColor &LC)
+{
+	int flag=0,flagmarca,flagcategoria,flagcolor,op;
+	char codigo[MAXCODIGO];
+
+   	NodoProducto *Aux=LP.cab;
+
+	if(LP.N>0)
+	{
+   		printf("\n Codigo     |  Descripcion");
+      	printf("\n================================");
+   		while(Aux!=NULL)
+      	{
+      		printf("\n %s       %s",Aux->P.codigo,Aux->P.descripcion);
+         	Aux=Aux->sgte;
+      	}
+      	Aux=LP.cab;
+		do
+      	{
+			printf("\n\n Ingrese codigo del producto a modificar(9 digitos): ");
+			fflush(stdin);
+			gets(codigo);
+		}while(!(strlen(codigo)==MAXCODIGO-1));
+		while(Aux!=NULL)
+      	{
+			if(stricmp(codigo,Aux->P.codigo)==0){
+				flag=1;
+				printf("\n 1.Descripcion");
+            	printf("\n 2.Codigo de la marca");
+            	printf("\n 3.Genero");
+            	printf("\n 4.Codigo de la categoria");
+            	printf("\n 5.Talla");
+            	printf("\n 6.Codigo del color");
+            	printf("\n 7.Precio por unidad");
+            	printf("\n 8.Stock minimo");
+            	op=leeEntero("\n\n Ingrese campo a modificar: ",1,8);
+            	switch(op)
+               	{
+					case 1:	
+						if(continuar("Desea modificar la descripcion de este producto? (S/N): ")=='S')
+        				{
+                            printf("\n Ingrese descripcion: ");
+                            fflush(stdin);
+							gets(Aux->P.descripcion);
+              				printf("\n    Accion exitosa");
+        				}
+                        else
+                          	printf("\n    Accion interrumpida");
+						break;
+                     case 2:  
+					 	if(continuar("Desea modificar el codigo de la marca de este producto? (S/N): ")=='S')
+            			{
+                            if(LM.N>0)
+                          	{
+                          		printf("\n Codigo  |  Descripcion");
+                          		printf("\n========================");
+                                for(int i=0;i<LM.N;i++)
+									if(LM.Data[i].estado==1)
+                                   		printf("\n  %s        %s",LM.Data[i].codMarca,LM.Data[i].desMarca);
+								do
+                                {
+									do
+                                   	{
+										printf("\n\n Ingrese codigo de marca: ");
+                          				fflush(stdin);
+										gets(Aux->P.codMarca);
+									}while(!(strlen(Aux->P.codMarca)==MAXCAMPO-1));
+  									flagmarca=0;
+  									for(int i=0;i<LM.N;i++)
+  										if(strcmpi(Aux->P.codMarca,LM.Data[i].codMarca)==0)
+     										flagmarca=1;
+  										if(flagmarca==0)
+  											printf("\nLa marca no ha sido registrada");
+								}while(flagmarca==0);
+                          	}
+                          	else
+                          		printf("\nNo hay marcas");
+                            printf("\n    Accion exitosa");
+            			}
+                        else
+                            printf("\n    Accion interrumpida");
+                        break;
+					case 3:  
+						if(continuar("Desea modificar el genero de este producto? (S/N): ")=='S')
+						{
+                     		Aux->P.genero=validaTabla("\n Ingrese genero: ",TGenero,MAXGENERO);
+      						printf("\n    Accion exitosa");
+						}
+                      	else
+                      		printf("\n    Accion interrumpida");
+						break;
+					case 4:  
+						if(continuar("Desea modificar el codigo de la categoria de este producto? (S/N): ")=='S')
+            			{
+                            if(LCA.N>0)
+                     		{
+                              	printf("\n Codigo  |  Descripcion");
+   								printf("\n========================");
+   								for(int i=0;i<LCA.N;i++)
+   									if(LCA.Data[i].estado==1)
+   										printf("\n  %s        %s",LCA.Data[i].codCategoria,LCA.Data[i].desCategoria);
+   								do
+                                {
+									do
+                                    {
+   										printf("\n Ingrese codigo de categoria: ");
+                              			fflush(stdin);
+   										gets(Aux->P.codCategoria);
+   									}while(!(strlen(Aux->P.codCategoria)==MAXCAMPO-1));
+      								flagcategoria=0;
+      								for(int i=0;i<LCA.N;i++)
+      									if(strcmpi(Aux->P.codCategoria,LCA.Data[i].codCategoria)==0)
+         									flagcategoria=1;
+                              			if(flagcategoria==0)
+      										printf("\nLa categoria no ha sido registrada");
+   								}while(flagmarca==0);
+                     		}
+                           	else
+                              	printf("\nNo hay categorias");
+                            printf("\n    Accion exitosa");
+            			}
+                        else
+                            printf("\n    Accion interrumpida");
+						break;
+					case 5:  
+						if(continuar("Desea modificar la talla de este producto? (S/N): ")=='S')
+						{
+                     		Aux->P.talla=leeEntero("\n Ingrese talla: ",35,47);
+      						printf("\n    Accion exitosa");
+						}
+                      	else
+                      		printf("\n    Accion interrumpida");
+						break;
+					case 6:  
+						if(continuar("Desea modificar el codigo de color de este producto? (S/N): ")=='S')
+						{
+                     		if(LC.N>0)
+         					{
+         						printf("\n Codigo  |  Descripcion");
+								printf("\n========================");
+								for(int i=0;i<LC.N;i++)
+									if(LC.Data[i].estado==1)
+										printf("\n  %s        %s",LC.Data[i].codColor,LC.Data[i].desColor);
+                  				do
+                        		{
+									do
+                           			{
+										printf("\n Ingrese codigo de color: ");
+                  						fflush(stdin);
+										gets(Aux->P.codColor);
+									}while(!(strlen(Aux->P.codColor)==MAXCAMPO-1));
+									flagcolor=0;
+									for(int i=0;i<LC.N;i++)
+										if(strcmpi(Aux->P.codColor,LC.Data[i].codColor)==0)
+											flagcolor=1;
+									if(flagcolor==0)
+										printf("\nEl color no ha sido registrado");
+                  				}while(flagcolor==0);
+                  			}
+                  			else
+                  				printf("\nNo hay colores");
+      						printf("\n    Accion exitosa");
+						}
+                  		else
+                  			printf("\n    Accion interrumpida");
+						break;
+					case 7:  
+						if(continuar("Desea modificar el precio de este producto? (S/N): ")=='S')
+						{
+                     		Aux->P.precio=leeReal("\n Ingrese precio[60-1,600]: ",60.00,1600.00);
+      						printf("\n    Accion exitosa");
+						}
+                  		else
+                  			printf("\n    Accion interrumpida");
+            			break;
+                     case 8:  
+					 	if(continuar("Desea modificar el stock minimo de este producto? (S/N): ")=='S')
+						{
+                     		Aux->P.stockminimo=leeEntero("\n Ingrese stock minimo: ",1,Aux->P.stock);
+      						printf("\n    Accion exitosa");
+						}
+                  		else
+                  			printf("\n    Accion interrumpida");
+            			break;
+				}
+			}
+			Aux=Aux->sgte;
+		}
+		if(flag==0)
+			printf("\nEl codigo no ha sido registrado");
+	}
+	else
+		printf("\nNo hay datos...");
+	getch();
+}
+
+void bajaProducto(ListaProducto &LP)
+{
+	int flag=0;
+	char codigo[MAXCODIGO];
+
+	codigo[0]=NULL;
+   	NodoProducto *Aux=LP.cab;
+
+	if(LP.N>0)
+   	{
+   		printf("\n  Codigo     |  Descripcion");
+      	printf("\n=================================");
+   		while(Aux!=NULL)
+      	{
+      		if(Aux->P.estado==1)
+      			printf("\n %s        %s",Aux->P.codigo,Aux->P.descripcion);
+         	Aux=Aux->sgte;
+      	}
+      	Aux=LP.cab;
+		do
+      	{
+			printf("\n\n Ingrese codigo del producto(9 caracteres): ");
+			fflush(stdin);
+			gets(codigo);
+		}while(!(strlen(codigo)==MAXCODIGO-1));
+		while(Aux!=NULL)
+      	{
+			if(stricmp(codigo,Aux->P.codigo)==0)
+         	{
+				flag=1;
+				if(Aux->P.estado==1)
+            	{
+					if(continuar("Desea dar de baja a este producto? (S/N): ")=='S')
+               		{
+						Aux->P.estado=0;
+						printf("\n    Accion exitosa");
+					}
+					else
+						printf("\n    Accion interrumpida");
+				}
+				else
+					printf("\nEl producto ya se encuentra inactivo");
+			}
+			Aux=Aux->sgte;
+		}
+		if(flag==0)
+			printf("\nEl codigo no ha sido registrado");
+	}
+	else
+		printf("\nNo hay datos...");
+	getch();
+}
+
+//PROVEEEEEEEEEEEEEEEEEEEDOR
+
+struct Proveedor
+{
+   	char ruc[MAXRUC];
+   	char nombre[LIM];
+   	char telefono[MAXTELEFONO];
+   	char direccion[LIM];
+   	int estado;
+};
+
+void iniciaProveedor(Proveedor &PR)
+{
+ 	PR.nombre[0]=NULL;
+   	PR.ruc[0]=NULL;
+ 	PR.telefono[0]=NULL;
+ 	PR.direccion[0]=NULL;
+ 	PR.estado=1;
+}
+
+struct NodoProveedor
+{
+	NodoProveedor *sgte;
+   	Proveedor PR;
+};
+
+struct ListaProveedor
+{
+	NodoProveedor *cab;
+   	int N;
+};
+
+void iniciaListaProveedor(ListaProveedor &LPR)
+{
+	LPR.cab=NULL;
+   	LPR.N=0;
+}
+
+void leeProveedor(Proveedor &PR,ListaProveedor &LPR)
+{
+   int flagruc;
+
+   NodoProveedor *Aux=LPR.cab;
+
+   	do
+   	{
+ 		do
+      	{
+    		printf("\n Ingrese RUC(11 caracteres): ");
+    		fflush(stdin);
+      		gets(PR.ruc);
+ 		}while(!(strlen(PR.ruc)==MAXRUC-1));
+      	flagruc=0;
+      	while(Aux!=NULL)
+      	{
+      		if(strcmpi(PR.ruc,Aux->PR.ruc)==0)
+         		flagruc=1;
+         	Aux=Aux->sgte;
+      	}
+      	if(flagruc==1)
+      	printf("\n    *Error: el RUC se ha ingresado anteriormente\n");
+   	}while(!(flagruc==0));
+	printf("\n Ingrese nombre del proveedor: ");
+   	fflush(stdin);
+   	gets(PR.nombre);
+   	do
+	{
+   		printf("\n Ingrese numero de telefono(9 caracteres): ");
+      	fflush(stdin);
+      	gets(PR.telefono);
+   	}while(!(strlen(PR.telefono)==MAXTELEFONO-1));
+   	printf("\n Ingrese direccion: ");
+   	fflush(stdin);
+   	gets(PR.direccion);
+   	PR.estado=1;
+}
+
+void mostrarProveedor(Proveedor &PR,int y)
+{
+	gotoxy(2,y);
+	printf("%s",PR.ruc);
+   	gotoxy(17,y);
+   	printf("%s",PR.nombre);
+   	gotoxy(43,y);
+   	printf("%s",PR.telefono);
+   	gotoxy(57,y);
+   	printf("%s",PR.direccion);
+   	gotoxy(90,y);
+   	if(PR.estado==1)
+   		printf("Activo");
+   	else
+   		printf("Inactivo");
+}
+
+void insertaProveedor(ListaProveedor &LPR,Proveedor &PR,NodoProveedor *&Aux)
+{
+	NodoProveedor *Dato;
+
+   	Dato=new NodoProveedor;
+   	Dato->PR=PR;
+
+   	if(Aux==NULL)
+   	{
+   		Dato->sgte=LPR.cab;
+      	LPR.cab=Dato;
+   	}
+   	else
+   	{
+   		Dato->sgte=Aux->sgte;
+      	Aux->sgte=Dato;
+   	}
+   	LPR.N++;
+   	Aux=Dato;
+}
+
+void leeListaProveedor(ListaProveedor &LPR)
+{
+	Proveedor PR;
+
+   	NodoProveedor *Aux=LPR.cab;
+
+   	do
+   	{
+   		iniciaProveedor(PR);
+      	leeProveedor(PR,LPR);
+      	insertaProveedor(LPR,PR,Aux);
+   	}while(continuar("Desea continuar? (S/N): ")=='S');
+}
+
+void mostrarListaProveedor(ListaProveedor &LPR)
+{
+	int y=24;
+
+	NodoProveedor *Aux=LPR.cab;
+
+	if(LPR.N>0)
+   	{
+   		printf("\n RUC            Nombre                    Telefono      Direccion                        Estado");
+      	printf("\n================================================================================================\n");
+      	while(Aux!=NULL)
+      	{
+         	mostrarProveedor(Aux->PR,y);
+         	y++;
+         	Aux=Aux->sgte;
+      	}
+   	}
+   	else
+   		printf("\nNo hay datos...");
+   	getch();
+}
+
+void modificaProveedor(ListaProveedor &LPR)
+{
+	int flag=0,op;
+   	char ruc[MAXRUC];
+
+  	NodoProveedor *Aux=LPR.cab;
+
+   	if(LPR.N>0)
+   	{
+   		printf("\n RUC          |  Nombre Proveedor");
+      	printf("\n==========================================");
+   		while(Aux!=NULL)
+      	{
+      		printf("\n %s     %s",Aux->PR.ruc,Aux->PR.nombre);
+         	Aux=Aux->sgte;
+      	}
+      	Aux=LPR.cab;
+   		do
+      	{
+   			printf("\n\n Ingrese RUC de proveedor a modificar: ");
+      		fflush(stdin);
+      		gets(ruc);
+      	}while(!(strlen(ruc)==MAXRUC-1));
+      	while(Aux!=NULL)
+      	{
+      		if(strcmpi(ruc,Aux->PR.ruc)==0)
+         	{
+         		flag=1;
+            	printf("\n 1.Nombre");
+            	printf("\n 2.Telefono");
+            	printf("\n 3.Direccion");
+            	op=leeEntero("\n\n Ingrese campo a modificar: ",1,3);
+            	switch(op)
+            	{
+            		case 1: 	
+						printf("\n Ingrese nombre del proveedor: ");
+               		  	fflush(stdin);
+                        gets(Aux->PR.nombre);
+                        break;
+               		case 2:  
+					   	do
+               			{
+               		   		printf("\n Ingrese numero de telefono(9 caracteres): ");
+                           	fflush(stdin);
+                           	gets(Aux->PR.telefono);
+               			}while(!(strlen(Aux->PR.telefono)==MAXTELEFONO-1));
+                        break;
+               		case 3:  
+					   	printf("\n Ingrese direccion: ");
+               			fflush(stdin);
+               			gets(Aux->PR.direccion);
+                        break;
+            		}
+         	}
+         	Aux=Aux->sgte;
+      	}
+      	if(flag==0)
+      	{
+      		printf("\nEl RUC no ha sido registrado");
+      	}
+   	}
+   	else
+   		printf("\nNo hay datos...");
+   	getch();
+}
+
+void bajaProveedor(ListaProveedor &LPR)
+{
+	int flag=0;
+   	char ruc[MAXRUC];
+
+   	NodoProveedor *Aux=LPR.cab;
+
+   	if(LPR.N>0)
+   	{
+   		printf("\n RUC          |  Nombre Proveedor");
+      	printf("\n==========================================");
+   		while(Aux!=NULL)
+      	{
+      		if(Aux->PR.estado==1)
+      			printf("\n %s     %s",Aux->PR.ruc,Aux->PR.nombre);
+         	Aux=Aux->sgte;
+      	}
+      	Aux=LPR.cab;
+   		do
+		{
+      		printf("\n\n Ingrese RUC de proveedor: ");
+         	fflush(stdin);
+         	gets(ruc);
+      	}while(!(strlen(ruc)==MAXRUC-1));
+      	while(Aux!=NULL)
+      	{
+      		if(strcmpi(ruc,Aux->PR.ruc)==0)
+         	{
+         		flag=1;
+            	if(Aux->PR.estado==1)
+            	{
+               		if(continuar("Desea dar de baja a este proveedor? (S/N): ")=='S')
+               		{
+               			Aux->PR.estado=0;
+                  		printf("\n    Accion exitosa");
+               		}
+               		else
+               			printf("\n     Accion interrumpida");
+            	}
+            else
+            	printf("\nEl proveedor ya se encuentra inactivo");
+         	}
+         	Aux=Aux->sgte;
+      	}
+      	if(flag==0)
+      		printf("\nEl RUC no ha sido registrado");
+   	}
+   	else
+   		printf("\nNo hay datos...");
+   	getch();
+}
+
+//TRABAJADOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOR
+
+struct Trabajador
+{
+ 	char DNI[MAXDNI];
+ 	char nombre[LIM];
+ 	int edad;
+ 	char telefono[MAXTELEFONO];
+   	Fecha fContrato;
+   	int estado;
+};
+
+void iniciaTrabajador(Trabajador &T)
+{
+	T.DNI[0]=NULL;
+   	T.nombre[0]=NULL;
+   	T.edad=0;
+   	T.telefono[0]=NULL;
+   	iniciaFecha(T.fContrato);
+   	T.estado=0;
+}
+
+struct NodoTrabajador
+{
+  	Trabajador T;
+  	NodoTrabajador *sgte;
+};
+
+struct ListaTrabajador
+{
+  	NodoTrabajador *cab;
+  	int N;
+};
+
+void iniciaListaTrabajador(ListaTrabajador &LT)
+{
+ 	LT.cab=NULL;
+ 	LT.N=0;
+}
+
+void leeTrabajador(Trabajador &T,ListaTrabajador &LT)
+{
+	int flagDNI;
+
+	NodoTrabajador *Aux=LT.cab;
+
+   	do
+   	{
+ 		do
+      	{
+    		printf("\n Ingrese DNI(8 caracteres): ");
+    		fflush(stdin);
+      		gets(T.DNI);
+ 		}while(!(strlen(T.DNI)==MAXDNI-1));
+      	flagDNI=0;
+   		while(Aux!=NULL)
+      	{
+   			if(strcmpi(T.DNI,Aux->T.DNI)==0)
+         		flagDNI=1;
+      		Aux=Aux->sgte;
+      	}
+      	if(flagDNI==1)
+      		printf("\n    *Error: el DNI se ha ingresado anteriormente\n");
+   	}while(!(flagDNI==0));
+   	printf("\n Ingrese nombre del trabajador: ");
+   	fflush(stdin);
+   	gets(T.nombre);
+   	T.edad=leeEntero("\n Ingrese edad: ",18,64);
+   	do
+   	{
+   		printf("\n Ingrese telefono celular(9 caracteres): ");
+   		fflush(stdin);
+   		gets(T.telefono);
+   	}while(!(strlen(T.telefono)==MAXTELEFONO-1));
+   	leeFecha(" Ingrese fecha de contrato",T.fContrato);
+   	T.estado=1;
+}
+
+void mostrarTrabajador(Trabajador &T,int y)
+{
+	gotoxy(2,y);
+	printf("%s",T.DNI);
+   	gotoxy(13,y);
+   	printf("%s",T.nombre);
+   	gotoxy(40,y);
+   	printf("%d",T.edad);
+   	gotoxy(49,y);
+   	printf("%s",T.telefono);
+   	gotoxy(60,y);
+   	mostrarFecha("",T.fContrato);
+   	gotoxy(78,y);
+   	if(T.estado==1)
+   		printf("Contratado");
+   	else
+   		printf("Despedido.");
+}
+
+void insertaTrabajador(ListaTrabajador &LT,Trabajador &T,NodoTrabajador *&Aux)
+{
+	NodoTrabajador *Dato;
+
+	Dato=new NodoTrabajador;
+   	Dato->T=T;
+
+  	if(Aux==NULL)
+  	{
+   		Dato->sgte=LT.cab;
+      LT.cab=Dato;
+  	}
+  	else
+	{
+     	Dato->sgte=Aux->sgte;
+     	Aux->sgte=Dato;
+   	}
+   	LT.N++;
+   	Aux=Dato;
+}
+
+void leeListaTrabajador(ListaTrabajador &LT)
+{
+	Trabajador T;
+
+	NodoTrabajador *Aux=LT.cab;
+
+   	do
+   	{
+   		iniciaTrabajador(T);
+      	leeTrabajador(T,LT);
+      	insertaTrabajador(LT,T,Aux);
+   	}while(!(continuar("Desea continuar (S/N): ")=='N'));
+}
+
+void mostrarListaTrabajador(ListaTrabajador &LT)
+{
+   	int y=24;
+
+	NodoTrabajador *Aux=LT.cab;
+
+	if(LT.N>0)
+   	{
+      	printf("\n DNI        Nombre                    Edad      Telefono     Fecha           Estado");
+      	printf("\n=======================================================================================\n");
+     	while(Aux!=NULL)
+      	{
+       		mostrarTrabajador(Aux->T,y);
+       		y++;
+       		Aux=Aux->sgte;
+      	}
+   	}
+   	else
+   		printf("\nNo hay datos...");
+   	getch();
+}
+
+void modificaTrabajador(ListaTrabajador &LT)
+{
+	int flag=0,op;
+	char DNI[MAXDNI];
+
+   	NodoTrabajador *Aux=LT.cab;
+   	DNI[0]=NULL;
+
+   	if(LT.N>0)
+   	{
+   		printf("\n DNI       |  Nombre Trabajador");
+      	printf("\n=================================");
+   		while(Aux!=NULL)
+      	{
+       		printf("\n %s     %s",Aux->T.DNI,Aux->T.nombre);
+         	Aux=Aux->sgte;
+      	}
+      	Aux=LT.cab;
+   		do
+      	{
+   			printf("\n\n Ingrese DNI de trabajador a modificar: ");
+      		fflush(stdin);
+      		gets(DNI);
+      	}while(!(strlen(DNI)==MAXDNI-1));
+      	while(Aux!=NULL)
+      	{
+      		if(strcmp(DNI,Aux->T.DNI)==0)
+         	{
+	         	flag=1;
+	            printf("\n 1.Nombre");
+	            printf("\n 2.Edad");
+	            printf("\n 3.Telefono");
+	            printf("\n 4.Fecha de contrato");
+	            op=leeEntero("\n\nIngrese campo a modificar: ",1,4);
+	            switch(op)
+	            {
+	            	case 1:  
+						printf("\n Ingrese nombre del trabajador: ");
+               			fflush(stdin);
+   						gets(Aux->T.nombre);
+               			break;
+	               case 2:	
+				   		Aux->T.edad=leeEntero("\n Ingrese edad[18-64]: ",18,64);
+	               		break;
+	               case 3:  
+				   		do
+	               		{
+	               			printf("\n Ingrese telefono celular(9 caracteres): ");
+	   						fflush(stdin);
+	   						gets(Aux->T.telefono);
+	   					}while(!(strlen(Aux->T.telefono)==MAXTELEFONO-1));
+	               		break;
+	               case 4:  
+				   		leeFecha("\n Ingrese fecha de contrato",Aux->T.fContrato);
+	               		break;
+	            }
+         	}
+         	Aux=Aux->sgte;
+      	}
+      	if(flag==0)
+      		printf("\nEl DNI no ha sido registrado");
+   	}
+   	else
+   		printf("\nNo hay datos...");
+   	getch();
+}
+
+void bajaTrabajador(ListaTrabajador &LT)
+{
+	int flag=0;
+	char DNI[MAXDNI];
+
+   	NodoTrabajador *Aux=LT.cab;
+   	DNI[0]=NULL;
+
+   	if(LT.N>0)
+   	{
+   		printf("\n DNI       |  Nombre Trabajador");
+      	printf("\n=================================");
+   		while(Aux!=NULL)
+      	{
+      		if(Aux->T.estado==1)
+      			printf("\n %s     %s",Aux->T.DNI,Aux->T.nombre);
+         	Aux=Aux->sgte;
+      	}
+      	Aux=LT.cab;
+   		do
+      	{
+   			printf("\n\n Ingrese DNI de trabajador a dar de baja: ");
+      		fflush(stdin);
+      		gets(DNI);
+      	}while(!(strlen(DNI)==MAXDNI-1));
+     	while(Aux!=NULL)
+      	{
+			if(strcmp(DNI,Aux->T.DNI)==0)
+			{
+			 	flag=1;
+			    if(continuar("Desea dar de baja a este trabajador? (S/N): ")=='S')
+			    {
+			       	Aux->T.estado=0;
+			       	printf("\n    Accion exitosa");
+			    }
+			    else
+			    	printf("\n     Accion interrumpida");
+			}
+       		Aux=Aux->sgte;
+      	}
+      	if(flag==0)
+      		printf("\nNo hay trabajador contratado con ese numero de DNI");
+   	}
+   	else
+   		printf("\nNo hay datos");
+   	getch();
+}
+
+//DETALLE DE COMPRA y FACTURAAAAAAAAAAAAAA
+struct Detalle
+{
+ 	char numFactura[MAXFACTURA];
+ 	char codProducto[MAXCODIGO];
+ 	int cantidad;
+ 	float precio;
+ 	float subtotal;
+};
+
+void iniciaDetalle(Detalle &D)
+{
+ 	D.numFactura[0]=NULL;
+ 	D.codProducto[0]=NULL;
+ 	D.cantidad=0;
+ 	D.precio=0.0;
+ 	D.subtotal=0.0;
+}
+
+struct NodoDetalle
+{
+	Detalle D;
+	NodoDetalle *sgte;
+};
+
+struct ListaDetalle
+{
+	NodoDetalle *cab;
+	int N;
+};
+void iniciaListaDetalle(ListaDetalle &LD)
+{
+	LD.cab=NULL;
+   	LD.N=0;
+}
+struct Factura
+{
+ 	char factura[MAXFACTURA];
+ 	Fecha fFactura;
+ 	char rucProveedor[MAXRUC];
+   	ListaDetalle dCompra;
+ 	float total;
+   	float igv;
+   	int estado;
+};
+void iniciaFactura(Factura &F)
+{
+ 	F.factura[0]=NULL;
+ 	iniciaFecha(F.fFactura);
+ 	F.rucProveedor[0]=NULL;
+   	iniciaListaDetalle(F.dCompra);
+ 	F.total=0.0;
+   	F.igv=0.0;
+   	F.estado=1;
+}
+struct NodoFactura
+{
+	Factura F;
+	NodoFactura *sgte;
+};
+struct ListaFactura
+{
+	NodoFactura *cab;
+	int N;
+};
+void iniciaListaFactura(ListaFactura &LF)
+{
+	LF.cab=NULL;
+   	LF.N=0;
+}
+
+void leeDetalle(Detalle &D,Factura &F,ListaProducto &LP)
+{
+   	int flagcodProducto;
+
+   	NodoProducto *Aux1;
+
+   	strcpy(D.numFactura,F.factura);
+   	printf("\n Codigo         |  Descripcion");
+   	printf("\n===============================");
+   	Aux1=LP.cab;
+   	while(Aux1!=NULL)
+   	{
+   		if(Aux1->P.estado==1)
+      		printf("\n %s        %s",Aux1->P.codigo,Aux1->P.descripcion);
+      	Aux1=Aux1->sgte;
+   	}
+   	do
+   	{
+		do
+      	{
+	   		printf("\n\n Ingrese codigo de producto(9 digitos): ");
+	   		fflush(stdin);
+	   		gets(D.codProducto);
+	   	}while(!(strlen(D.codProducto)==MAXCODIGO-1));
+      	flagcodProducto=0;
+      	Aux1=LP.cab;
+		while(Aux1!=NULL)
+      	{
+			if(strcmpi(D.codProducto,Aux1->P.codigo)==0)
+				flagcodProducto=1;
+			Aux1=Aux1->sgte;
+		}
+      	if(flagcodProducto==0)
+      		printf("\n    *ERROR: El producto no ha sido registrado\n");
+   	}while(flagcodProducto==0);
+ 	D.cantidad=leeEntero("\n Ingrese cantidad[>1]: ",1,MAXSTOCK);
+   	Aux1=LP.cab;
+   	while(Aux1!=NULL)
+   	{
+   		if(strcmpi(D.codProducto,Aux1->P.codigo)==0)
+         	D.precio=leeReal("\n Ingrese precio por unidad[>60]: ",60,Aux1->P.precio);
+      	Aux1=Aux1->sgte;
+   	}
+ 	D.subtotal=(float)D.precio*D.cantidad;
+}
+
+void mostrarDetalle(Detalle &D,ListaProducto &LP)
+{
+	NodoProducto *Aux=LP.cab;
+	printf("\nCod: %s",D.codProducto);
+   	printf(" - Desc: ");
+   	while(Aux!=NULL)
+   	{
+   		if(strcmpi(D.codProducto,Aux->P.codigo)==0)
+      		printf("%s",Aux->P.descripcion);
+      	Aux=Aux->sgte;
+   	}
+   	printf(" - Cant: %d",D.cantidad);
+   	printf(" - Precio: %.2f",D.precio);
+   	printf(" - Subt: %.2f",D.subtotal);
+}
+
+void insertaDetalle(ListaDetalle &LD,Detalle &D,NodoDetalle *&Aux)
+{
+	NodoDetalle *Dato;
+
+   	Dato=new NodoDetalle;
+   	Dato->D=D;
+
+	if(Aux==NULL)
+   	{
+   		Dato->sgte=LD.cab;
+      	LD.cab=Dato;
+   	}
+   	else
+   	{
+   		Dato->sgte=Aux->sgte;
+      	Aux->sgte=Dato;
+   	}
+   	LD.N++;
+   	Aux=Dato;
+}
+
+void leeListaDetalle(ListaDetalle &LD,Factura &F,ListaProducto &LP)
+{
+ 	Detalle D;
+
+ 	NodoDetalle *Aux=LD.cab;
+
+ 	do
+   	{
+  		iniciaDetalle(D);
+  		leeDetalle(D,F,LP);
+  		insertaDetalle(LD,D,Aux);
+ 	}while(continuar("Desea comprar otro producto?(S/N): ")=='S');
+}
+
+void mostrarListaDetalle(ListaDetalle &LD,ListaProducto &LP)
+{
+ 	NodoDetalle *Aux=LD.cab;
+
+ 	if(LD.N>0)
+ 	{
+   		while(Aux!=NULL)
+   		{
+     		mostrarDetalle(Aux->D,LP);
+     		Aux=Aux->sgte;
+      	}
+   	}
+ 	else
+ 		printf("\n No Hay Datos...");   
+}
+
+void leeFactura(Factura &F,ListaFactura &LF,ListaProveedor &LPR,ListaProducto &LP)
+{
+   	int flagfactura,flagruc;
+
+   	NodoFactura *Aux;
+   	NodoProveedor *Aux1;
+   	NodoDetalle *Aux2;
+
+   	do
+   	{
+ 		do
+      	{
+    		printf("\n Ingrese numero de factura(6 digitos): ");
+    		fflush(stdin);
+      		gets(F.factura);
+ 		}while(!(strlen(F.factura)==MAXFACTURA-1));
+      	flagfactura=0;
+      	Aux=LF.cab;
+      	while(Aux!=NULL)
+      	{
+      		if(strcmpi(F.factura,Aux->F.factura)==0)
+         		flagfactura=1;
+         	Aux=Aux->sgte;
+      	}
+      	if(flagfactura==1)
+      		printf("\n    *Error: La factura se ha ingresado anteriormente\n");
+   	}while(!(flagfactura==0));
+ 	leeFecha(" Ingrese fecha: ",F.fFactura);
+   	printf("\n RUC            |  Nombre");
+   	printf("\n====================================");
+   	Aux1=LPR.cab;
+   	while(Aux1!=NULL)
+   	{
+   		if(Aux1->PR.estado==1)
+      		printf("\n %s       %s",Aux1->PR.ruc,Aux1->PR.nombre);
+   		Aux1=Aux1->sgte;
+   	}
+   	do
+   	{
+		do
+      	{
+	   		printf("\n\n Ingrese RUC del proveedor: ");
+	   		fflush(stdin);
+	   		gets(F.rucProveedor);
+	   	}while(!(strlen(F.rucProveedor)==MAXRUC-1));
+      	flagruc=0;
+      	Aux1=LPR.cab;
+      	while(Aux1!=NULL)
+      	{
+      		if(strcmpi(F.rucProveedor,Aux1->PR.ruc)==0)
+         		flagruc=1;
+         	Aux1=Aux1->sgte;
+      	}
+      	if(flagruc==0)
+      		printf("\n    *ERROR: El RUC no ha sido registrado\n");
+   	}while(flagruc==0);
+   	leeListaDetalle(F.dCompra,F,LP);
+   	Aux2=F.dCompra.cab;
+   	while(Aux2!=NULL)
+   	{
+   		if(strcmpi(F.factura,Aux2->D.numFactura)==0)
+         	F.total+=Aux2->D.subtotal;
+      	Aux2=Aux2->sgte;
+   	}
+   	F.igv=18*F.total/100;
+}
+
+void mostrarFactura(Factura &F,ListaProducto &LP)
+{
+	printf("\nNumero de factura: %s",F.factura);
+  	mostrarFecha("        Fecha de pedido:",F.fFactura);
+  	printf("        RUC del proveedor: %s",F.rucProveedor);
+   	printf("\n");
+   	for(int i=0;i<35;i++)
+   		printf("===");
+   	mostrarListaDetalle(F.dCompra,LP);
+   	printf("\n");
+   	for(int i=0;i<35;i++)
+   		printf("===");
+  	printf("\nTotal: %.2f",F.total);
+  	printf("        IGV: %.2f",F.igv);
+   	printf("        Estado: ");
+  	switch(F.estado)
+  	{
+  		case 1: printf("Pendiente"); break;
+      	case 2: printf("Cancelado"); break;
+      	case 3: printf("Anulado"); break;
+      	case 4: printf("Recibido"); break;
+  	}
+}
+
+
+void insertaFactura(ListaFactura &LF,Factura &F,NodoFactura *&Aux)
+{
+	NodoFactura *Dato;
+
+   	Dato=new NodoFactura;
+   	Dato->F=F;
+
+   	if(Aux==NULL)
+   	{
+   		Dato->sgte=LF.cab;
+      	LF.cab=Dato;
+   	}
+   	else
+   	{
+   		Dato->sgte=Aux->sgte;
+   		Aux->sgte=Dato;
+   	}
+   	LF.N++;
+   	Aux=Dato;
+}
+
+void leeListaFactura(ListaFactura &LF,ListaProveedor &LPR,ListaProducto &LP)
+{
+ 	Factura F;
+
+   	NodoFactura *Aux=LF.cab;
+
+ 	do
+   	{
+  		iniciaFactura(F);
+  		leeFactura(F,LF,LPR,LP);
+  		insertaFactura(LF,F,Aux);
+ 	}while(continuar("Desea registrar otra factura?(S/N): ")=='S');
+}
+
+void mostrarListaFactura(ListaFactura &LF,ListaProducto &LP)
+{
+ 	NodoFactura *Aux=LF.cab;
+
+ 	if(LF.N>0)
+ 	{
+	   	while(Aux!=NULL)
+	   	{
+	     	mostrarFactura(Aux->F,LP);
+	     	Aux=Aux->sgte;
+	       printf("\n");
+	   	}
+	}
+ 	else
+ 		printf("\nNo Hay Datos...");
+ 	getch();
+}
+
+void estadoFactura(ListaFactura &LF,ListaProducto &LP)
+{
+	int flag=0,op;
+	char nf[MAXFACTURA];
+
+	nf[0]=NULL;
+   	NodoFactura *Aux=LF.cab;
+
+	if(LF.N>0)
+   	{	
+		do
+      	{
+			printf("\n Ingrese numero de factura(6 digitos): ");
+			fflush(stdin);
+			gets(nf);
+		}while(!(strlen(nf)==MAXFACTURA-1));
+		while(Aux!=NULL)
+      	{
+			if(stricmp(nf,Aux->F.factura)==0 && Aux->F.estado != 4)
+         	{
+         		flag=1;
+				mostrarFactura(Aux->F,LP);
+	            printf("\n\n 1.Cancelado");
+	            printf("\n 2.Anulado");
+	            printf("\n 3.Volver");
+	            op=leeEntero("\n Ingrese nuevo estado: ",1,3);
+	            switch(op)
+	            {
+	               case 1: Aux->F.estado=2; break;
+	               case 2: Aux->F.estado=3; break;
+	               case 3: break;
+	            }
+				printf("\n    Accion exitosa");
+			}
+			Aux=Aux->sgte;
+		}
+		if(flag==0)
+			printf("\nLa factura no ha sido registrada");
+	}
+	else
+		printf("\nNo hay datos...");
+	getch();
+}
+
+//Entrada,Salida,Kardex
+
+//KARDEEEEEEEEEEEEEEEEEEEEEEEX
+struct Kardex
+{
+	Fecha fKardex;
+   	char codProducto[MAXCODIGO];
+   	int tipo;
+   	int cantidad;
+	char numeroFactura[MAXFACTURA];
+   	int numeroSalida;
+};
+
+void iniciaKardex(Kardex &K)
+{
+   	iniciaFecha(K.fKardex);
+   	K.codProducto[0]=NULL;
+   	K.tipo=0;
+   	K.cantidad=0;
+   	K.numeroFactura[0]=NULL;
+  	K.numeroSalida=0;
+}
+
+struct NodoKardex
+{
+	Kardex K;
+	NodoKardex *sgte;
+};
+
+struct ListaKardex
+{
+	NodoKardex *cab;
+	int N;
+};
+
+void iniciaListaKardex(ListaKardex &LK)
+{
+	LK.cab=NULL;
+   	LK.N=0;
+}
+
+void mostrarKardex(Kardex &K,int y)
+{
+	if(y>-1)
+		gotoxy(5,y);
+   	if(K.tipo==1)
+   		printf(" Entrada");
+   	else
+      	printf(" Salida");
+    if(y>-1)
+		gotoxy(18,y);
+	mostrarFecha(" ",K.fKardex);
+	if(y>-1)
+   		gotoxy(42,y);
+   	if(K.tipo==1)
+   		printf(" %s",K.numeroFactura);
+   	else
+ 		printf(" %d",K.numeroSalida);
+ 	if(y>-1)
+   		gotoxy(61,y);
+ 	printf(" %s",K.codProducto);
+ 	if(y>-1)
+   		gotoxy(79,y);              
+   	printf(" %d",K.cantidad);
+}
+
+void insertaKardex(ListaKardex &LK,Kardex &K,NodoKardex *&Aux)
+{
+	NodoKardex *Dato;
+
+   	Dato=new NodoKardex;
+   	Dato->K=K;
+
+   	if(Aux==NULL)
+   	{
+   		Dato->sgte=LK.cab;
+      	LK.cab=Dato;
+   	}
+   	else
+   	{
+   		Dato->sgte=Aux->sgte;
+      	Aux->sgte=Dato;
+   	}
+   	LK.N++;
+   	Aux=Dato;
+}
+
+void mostrarListaKardex(ListaKardex &LK)
+{
+	int y=20;
+ 	NodoKardex *Aux=LK.cab;
+ 	if(LK.N>0)
+ 	{
+   		printf("\n Tipo Movimiento       Fecha       Numero de documento   Codigo(Producto)   Cantidad");
+      	printf("\n=====================================================================================\n");
+	   	while(Aux!=NULL)
+	   	{
+	     	mostrarKardex(Aux->K,y);
+	       	y++;
+	     	Aux=Aux->sgte;
+	   	}
+   	}
+ 	else
+ 		printf("\nNo Hay Datos...");
+ 	getch();
+}
+
+//ENTRADAAAAAAAAAAAAAAAAAAA
+struct Entrada
+{
+ 	char numeroFactura[MAXFACTURA];
+   	Fecha fEntrada;
+   	char codProducto[MAXCODIGO];
+   	int cantidad;
+};
+
+void iniciaEntrada(Entrada &E)
+{
+	E.numeroFactura[0]=NULL;
+   	iniciaFecha(E.fEntrada);
+	E.cantidad=0;
+}
+
+struct NodoEntrada
+{
+   	Entrada E;
+   	NodoEntrada *sgte;
+};
+
+struct ListaEntrada
+{
+	NodoEntrada *cab;
+   	int N;
+};
+
+void iniciaListaEntrada(ListaEntrada &LE)
+{
+	LE.cab=NULL;
+   	LE.N=0;
+}
+
+void leeEntrada(Entrada &E,Kardex &K,Detalle &D,Fecha &faux,ListaProducto &LP)
+{
+   	NodoProducto *Aux=LP.cab;
+
+	K.tipo=1;
+   	strcpy(E.numeroFactura,D.numFactura);
+   	strcpy(K.numeroFactura,D.numFactura);
+	copiaFecha(E.fEntrada,faux);
+   	copiaFecha(K.fKardex,faux);
+   	strcpy(E.codProducto,D.codProducto);
+   	strcpy(K.codProducto,D.codProducto);
+   	E.cantidad=D.cantidad;
+   	K.cantidad=D.cantidad;
+   	while(Aux!=NULL)
+   	{
+   		if(strcmpi(E.codProducto,Aux->P.codigo)==0)
+   			Aux->P.stock+=E.cantidad;
+      	Aux=Aux->sgte;
+   	}
+}
+
+void mostrarEntrada(Entrada &E)
+{
+ 	printf("\n NumFactura: %s",E.numeroFactura);
+ 	mostrarFecha(" - Fecha:",E.fEntrada);
+ 	printf(" - CodProducto: %s",E.codProducto);
+ 	printf(" - Cantidad: %d",E.cantidad);
+}
+
+void insertaEntrada(ListaEntrada &LE,Entrada &E,NodoEntrada *&Aux)
+{
+	NodoEntrada *Dato;
+
+   	Dato=new NodoEntrada;
+   	Dato->E=E;
+
+   	if(Aux==NULL)
+   	{
+   		Dato->sgte=LE.cab;
+      	LE.cab=Dato;
+   	}
+   	else
+   	{
+   		Dato->sgte=Aux->sgte;
+      	Aux->sgte=Dato;
+   	}
+   	LE.N++;
+   	Aux=Dato;
+}
+
+void leeListaEntrada(ListaEntrada &LE,ListaKardex &LK,Factura &F,Fecha &faux,ListaProducto &LP)
+{
+   	NodoDetalle *Aux=F.dCompra.cab;
+   	F.estado = 4;//estado a factura-registrada
+
+   	while(Aux!=NULL)
+   	{
+   		Entrada E;
+      	Kardex K;
+      	NodoEntrada *Aux2=LE.cab;
+      	NodoKardex *Aux3=LK.cab;
+      	iniciaEntrada(E);
+      	iniciaKardex(K);
+      	leeEntrada(E,K,Aux->D,faux,LP);
+      	insertaEntrada(LE,E,Aux2);
+      	insertaKardex(LK,K,Aux3);
+      	Aux=Aux->sgte;
+   }
+}
+
+void busquedaFactura(ListaEntrada &LE,ListaKardex &LK,ListaFactura &LF,ListaProducto &LP)
+{
+	int flagnumerofactura;
+	int contadorFacturas = 0;
+   	Fecha faux;
+   	char nfaux[MAXFACTURA];
+
+   	nfaux[0]=NULL;
+   	NodoFactura *Aux=LF.cab;
+   	NodoFactura *Aux2;
+
+   	printf("\n Facturas Registradas");
+   	printf("\n========================");
+   	while(Aux!=NULL)
+    {
+		if(Aux->F.estado == 2)
+		{
+			printf("\n       %s",Aux->F.factura);
+        	contadorFacturas++;
+		}
+		Aux=Aux->sgte;
+    }
+    if(contadorFacturas > 0)
+   	{
+	   	do
+	   	{
+			do
+	      	{
+	   			printf("\n\n Ingrese numero de factura(6 digitos): ");
+	   			fflush(stdin);
+	   			gets(nfaux);
+	   		}while(!(strlen(nfaux)==MAXFACTURA-1));
+	      	flagnumerofactura=0;
+	      	Aux=LF.cab;
+			while(Aux!=NULL)
+	      	{
+				if(strcmpi(nfaux,Aux->F.factura)==0)
+	         	{
+					flagnumerofactura=1;
+	            	Aux2=Aux;
+	         	}
+				Aux=Aux->sgte;
+			}
+	      	if(flagnumerofactura==0)
+	      		printf("\n    *ERROR: El numero de factura no ha sido registrado\n");
+	   	}while(flagnumerofactura==0);
+		leeFecha(" \n Ingrese fecha de entrada: ",faux);
+	   	leeListaEntrada(LE,LK,Aux2->F,faux,LP);
+	   	printf("\n * Entrada Exitosa *");
+	   	getch();
+   	}
+   	else
+   	{
+   		printf("\n * No hay facturas Canceladas *");
+		getch();
+	}
+}
+
+//SALIDAAAAAAAAAAAAAAAAAAA
+
+struct Salida
+{
+ 	int numeroSalida;
+   	Fecha fSalida;
+   	char codProducto[MAXCODIGO];
+   	int cantidad;
+};
+
+void iniciaSalida(Salida &S)
+{
+	S.numeroSalida=0;
+   	iniciaFecha(S.fSalida);
+	S.codProducto[0]=NULL;
+	S.cantidad=0;
+}
+
+struct NodoSalida
+{
+	Salida S;
+   	NodoSalida *sgte;
+};
+
+struct ListaSalida
+{
+	NodoSalida *cab;
+   	int N;
+};
+
+void iniciaListaSalida(ListaSalida &LS)
+{
+	LS.cab=NULL;
+   	LS.N=0;
+}
+
+void leeSalida(Salida &S,ListaSalida &LS,Kardex &K,ListaProducto &LP)
+{
+   	int flagcodproducto,stockAux;
+
+	NodoProducto *Aux;
+
+   	K.tipo=2;
+   	S.numeroSalida=100+LS.N;
+   	K.numeroSalida=S.numeroSalida;
+	leeFecha(" Ingrese fecha de salida: ",S.fSalida);
+   copiaFecha(K.fKardex,S.fSalida);
+   printf("\n Codigo         |  Descripcion");
+   printf("\n===============================");
+   Aux=LP.cab;
+   	while(Aux!=NULL)
+   	{
+   		if(Aux->P.stock>0)
+      		printf("\n %s        %s",Aux->P.codigo,Aux->P.descripcion);
+      	Aux=Aux->sgte;
+   	}
+   	do
+   	{
+		do
+      	{
+   			printf("\n\n Ingrese codigo de producto(9 digitos): ");
+	   		fflush(stdin);
+	   		gets(S.codProducto);
+	   	}while(!(strlen(S.codProducto)==MAXCODIGO-1));
+      	flagcodproducto=0;
+      	Aux=LP.cab;
+		while(Aux!=NULL)
+      	{
+			if(strcmpi(S.codProducto,Aux->P.codigo)==0)
+         	{
+				flagcodproducto=1;
+            	stockAux=Aux->P.stock;
+         	}
+			Aux=Aux->sgte;
+		}
+      	if(flagcodproducto==0)
+      		printf("\n    *ERROR: El producto no ha sido registrado\n");
+   	}while(flagcodproducto==0);
+   	strcpy(K.codProducto,S.codProducto);
+   	printf("\n El stock disponible es de: %d",stockAux);
+	S.cantidad=leeEntero("\n Ingrese cantidad: ",1,stockAux);
+   	K.cantidad=S.cantidad;
+   	Aux=LP.cab;
+   	while(Aux!=NULL)
+   	{
+   		if(strcmpi(S.codProducto,Aux->P.codigo)==0)
+   			Aux->P.stock-=S.cantidad;
+      	Aux=Aux->sgte;
+   	}
+}
+
+void mostrarSalida(Salida &S)
+{
+ 	printf("\n NumSalida: %d",S.numeroSalida);
+ 	mostrarFecha(" - Fecha:",S.fSalida);
+ 	printf(" - CodProducto: %s",S.codProducto);
+ 	printf(" - Cantidad: %d",S.cantidad);
+}
+
+void insertaSalida(ListaSalida &LS,Salida &S,NodoSalida *&Aux)
+{
+	NodoSalida *Dato;
+
+   	Dato=new NodoSalida;
+   	Dato->S=S;
+
+   	if(Aux==NULL)
+   	{
+   		Dato->sgte=LS.cab;
+      	LS.cab=Dato;
+   	}
+   	else
+   	{
+   		Dato->sgte=Aux->sgte;
+      	Aux->sgte=Dato;
+   	}
+   	LS.N++;
+   	Aux=Dato;
+}
+
+void leeListaSalida(ListaSalida &LS,ListaKardex &LK,ListaProducto &LP)
+{
+ 	Salida S;
+   	Kardex K;
+
+ 	NodoSalida *Aux=LS.cab;
+   	NodoKardex *Aux1=LK.cab;
+
+   	do
+   	{
+  		iniciaSalida(S);
+      	iniciaKardex(K);
+  		leeSalida(S,LS,K,LP);
+  		insertaSalida(LS,S,Aux);
+      	insertaKardex(LK,K,Aux1);
+ 	}while(continuar("Desea Continuar(S/N): ")=='S');
+}
+
+void acercade()
+{
+	printf("\nAplicacion para control de almacen de la empresa de venta de calzado Pimp.");
+   	printf("\nSe hace el registro de todo producto que es comercializado en la tienda con sus");
+   	printf("\ncaracteristicas respectivas (codigo de referencia de almacen, marca, nombre, genero,");
+   	printf("\nstock, categoria, talla, color y precio) asi como tambien del proveedor que lo hace llegar");
+   	printf("\n(considerando para este su razon social, RUC, telefono y direccion). Se ingresan los datos");
+   	printf("\nde los empleados (se considera DNI, nombre completo, edad, telefono y fecha de contrato).");
+   	printf("\nSe realiza una comprobacion de stocks para revisar que productos deben pedirse urgentemente.");
+   	printf("\nSe realiza la compra de mercaderia a los proveedores y cada producto registrado en la compra se");
+   	printf("\nalmacena en una estructura adicional llamada detalle. Se realizan las entradas y salidas de");
+   	printf("\nmercaderia y el detalle de las mismas es almacenado en una lista kardex.");
+	printf("\n\nIntegrantes:");
+   	printf("\n-Chira Cruz Kevin");
+   	printf("\n-Ramirez Benites Rafael");
+   	printf("\n-Rojas Vera Aaron");
+   	printf("\n-Torres Mendoza Carlos");
+   	printf("\n-Garcia Lopez Alejandra");
+   	getch();                    
+}
+
+//Liberarrrrrrrrrrrrrrrrrrr
+
+void liberarListaMarca(ListaMarca &LM)
+{
+	delete[] LM.Data;
+}
+
+void liberarListaCategoria(ListaCategoria &LCA)
+{
+	delete[] LCA.Data;
+}
+
+void liberarListaColor(ListaColor &LC)
+{
+	delete[] LC.Data;
+}
+
+void liberarProducto(ListaProducto &LP)
+{
+	NodoProducto *Aux=LP.cab;
+
+	while(Aux!=NULL)
+   	{
+		LP.cab=Aux->sgte;
+		delete Aux;
+		Aux=LP.cab;
+	}
+}
+
+void liberarListaProveedor(ListaProveedor &LPR)
+{
+	NodoProveedor *Aux=LPR.cab;
+
+   	while(Aux!=NULL)
+   	{
+   		LPR.cab=Aux->sgte;
+      	delete Aux;
+      	Aux=LPR.cab;
+   	}
+}
+
+void liberarListaTrabajador(ListaTrabajador &LT)
+{
+	NodoTrabajador *Aux=LT.cab;
+
+   	while(Aux!=NULL)
+   	{
+   		LT.cab=Aux->sgte;
+      	delete Aux;
+      	Aux=LT.cab;
+   }
+}
+
+void liberarListaDetalle(ListaDetalle &LD)
+{
+  	NodoDetalle *Aux=LD.cab;
+  	while(Aux!=NULL)
+  	{
+   		LD.cab=Aux->sgte;
+   		delete Aux;
+   		Aux=LD.cab;
+  	}
+}
+
+void liberarListaFactura(ListaFactura &LF)
+{
+  	NodoFactura *Aux=LF.cab;
+
+  	while(Aux!=NULL)
+  	{
+   		LF.cab=Aux->sgte;
+   		liberarListaDetalle(Aux->F.dCompra);
+   		delete Aux;
+   		Aux=LF.cab;
+  	}
+}
+
+void liberarListaKardex(ListaKardex &LK)
+{
+  	NodoKardex *Aux=LK.cab;
+
+  	while(Aux!=NULL)
+  	{
+   		LK.cab=Aux->sgte;
+   		delete Aux;
+   		Aux=LK.cab;
+  	}
+}
+
+void liberarListaEntrada(ListaEntrada &LE)
+{
+  	NodoEntrada *Aux=LE.cab;
+
+  	while(Aux!=NULL)
+  	{
+   		LE.cab=Aux->sgte;
+   		delete Aux;
+   		Aux=LE.cab;
+  	}
+}
+
+void liberarListaSalida(ListaSalida &LS)
+{
+  	NodoSalida *Aux=LS.cab;
+
+  	while(Aux!=NULL)
+  	{
+   		LS.cab=Aux->sgte;
+   		delete Aux;
+   		Aux=LS.cab;
+  	}
+}
+
+void liberar(ListaMarca &LM,ListaCategoria &LCA,ListaColor &LC,ListaProducto &LP,ListaProveedor &LPR,ListaTrabajador &LT,ListaFactura &LF,ListaKardex &LK,ListaEntrada &LE,ListaSalida &LS)
+{
+	liberarListaMarca(LM);
+   	liberarListaCategoria(LCA);
+   	liberarListaColor(LC);
+   	liberarProducto(LP);
+   	liberarListaProveedor(LPR);
+   	liberarListaTrabajador(LT);
+   	liberarListaFactura(LF);
+   	liberarListaKardex(LK);
+   	liberarListaEntrada(LE);
+   	liberarListaSalida(LS);
+}
+
+void menuMantenimiento()
+{
+	printf("\n 1.Insertar");
+   	printf("\n 2.Dar de baja");
+   	printf("\n 3.Modificar");
+   	printf("\n 4.Listar");
+   	printf("\n 5.Salir");
+}
+
+void mantenimientoMarca(ListaMarca &LM)
+{
+	int op;
+
+   	menuMantenimiento();
+   	op=leeEntero("\n\nIngrese opcion: ",1,5);
+
+   	switch(op)
+   	{
+   		case 1: leeListaMarca(LM); break;
+      	case 2: bajaMarca(LM); break;
+      	case 3: modificaMarca(LM); break;
+      	case 4: mostrarListaMarca(LM); break;
+      	case 5: break;
+   	}
+}
+
+void mantenimientoCategoria(ListaCategoria &LCA)
+{
+	int op;
+
+   	menuMantenimiento();
+   	op=leeEntero("\n\nIngrese opcion: ",1,5);
+
+   	switch(op)
+   	{
+   		case 1: leeListaCategoria(LCA); break;
+      	case 2: bajaCategoria(LCA); break;
+      	case 3: modificaCategoria(LCA); break;
+      	case 4: mostrarListaCategoria(LCA); break;
+      	case 5: break;
+   	}
+}
+
+void mantenimientoColor(ListaColor &LC)
+{
+	int op;
+
+   	menuMantenimiento();
+   	op=leeEntero("\n\nIngrese opcion: ",1,5);
+
+   	switch(op)
+   	{
+   		case 1: leeListaColor(LC); break;
+      	case 2: bajaColor(LC); break;
+      	case 3: modificaColor(LC); break;
+      	case 4: mostrarListaColor(LC); break;
+      	case 5: break;
+   	}
+}
+
+void mantenimientoProducto(ListaProducto &LP,ListaMarca &LM,ListaCategoria &LCA,ListaColor &LC)
+{
+	int op;
+
+  	menuMantenimiento();
+   	op=leeEntero("\n\nIngrese opcion: ",1,5);
+
+   	switch(op)
+   	{
+   		case 1: leeListaProducto(LP,LM,LCA,LC); break;
+      	case 2: bajaProducto(LP); break;
+      	case 3: modificaProducto(LP,LM,LCA,LC); break;
+      	case 4: mostrarListaProducto(LP,LM,LCA,LC); break;
+      	case 5: break;
+   	}
+}
+void mantenimientoProveedor(ListaProveedor &LPR)
+{
+	int op;
+
+   	menuMantenimiento();
+   	op=leeEntero("\n\nIngrese opcion: ",1,5);
+
+   	switch(op)
+   	{
+   		case 1: leeListaProveedor(LPR); break;
+      	case 2: bajaProveedor(LPR); break;
+      	case 3: modificaProveedor(LPR); break;
+      	case 4: mostrarListaProveedor(LPR); break;
+      	case 5: break;
+   	}
+}
+void mantenimientoTrabajador(ListaTrabajador &LT)
+{
+	int op;
+
+   	menuMantenimiento();
+   	op=leeEntero("\n\nIngrese opcion: ",1,5);
+
+   	switch(op)
+   	{
+   		case 1: leeListaTrabajador(LT); break;
+      	case 2: bajaTrabajador(LT); break;
+      	case 3: modificaTrabajador(LT); break;
+      	case 4: mostrarListaTrabajador(LT); break;
+      	case 5: break;
+   	}
+}
+
+void mantenimiento(ListaMarca &LM,ListaCategoria &LCA,ListaColor &LC,ListaProducto &LP,ListaProveedor &LPR,ListaTrabajador &LT)
+{
+	int op;
+
+   	do
+   	{
+	   	system("cls");
+	   	printf("\n - Mantenimiento -");
+	   	printf("\n=================");
+	   	printf("\n 1.Marca");
+	   	printf("\n 2.Categoria");
+	   	printf("\n 3.Color");
+	   	printf("\n 4.Producto");
+	   	printf("\n 5.Proveedor");
+	   	printf("\n 6.Trabajador");
+	   	printf("\n 7.Volver al Menu Principal");
+	   	op=leeEntero("\n\nIngrese opcion: ",1,7);
+	   	switch(op)
+	   	{
+	   		case 1: mantenimientoMarca(LM); break;
+	      	case 2: mantenimientoCategoria(LCA); break;
+	      	case 3: mantenimientoColor(LC); break;
+	      	case 4: mantenimientoProducto(LP,LM,LCA,LC); break;
+	      	case 5: mantenimientoProveedor(LPR); break;
+	      	case 6: mantenimientoTrabajador(LT); break;
+	       case 7: break;
+	   	}
+   	}while(op!=7);
+}
+
+void mostrarPedidos(Producto &P,int y)
+{
+	gotoxy(2,y);
+   	printf("%s",P.codigo);
+   	gotoxy(15,y);
+   	printf("%s",P.descripcion);
+   	gotoxy(40,y);
+   	printf("%d",P.stock);
+   	gotoxy(50,y);
+   	printf("%d",P.stockminimo);
+   	gotoxy(65,y);
+   	if(P.stock-P.stockminimo>0)
+   		printf("Normal");
+   	else
+   		printf("Pedir Urgente");
+}
+
+void procesoPedidos(ListaProducto &LP)
+{
+   	int y=13;
+   	NodoProducto *Aux=LP.cab;
+
+	if(LP.N>0)
+   	{
+   		printf("\n Codigo       Descripcion              Stock     Stock Minimo   Estado(stock)");
+   		printf("\n=============================================================================\n");
+		while(Aux!=NULL)
+      	{
+			mostrarPedidos(Aux->P,y);
+        	y++;
+			Aux=Aux->sgte;
+		}
+	}
+  	else
+   		printf("\n No hay productos registrados...");
+	getch();
+}
+
+void procesoCompra(ListaFactura &LF,ListaProveedor &LPR,ListaProducto &LP)
+{
+	int op;
+
+   	printf("\n 1.Nueva Factura");
+   	printf("\n 2.Modificar estado de factura");
+   	printf("\n 3.Mostrar facturas");
+   	printf("\n 4.Volver");
+   	op=leeEntero("\n\nIngrese opcion: ",1,4);
+   	switch(op)
+   	{
+   		case 1: leeListaFactura(LF,LPR,LP); break;
+      	case 2: estadoFactura(LF,LP) ; break;
+      	case 3: mostrarListaFactura(LF,LP); break;
+      	case 4: break;
+   	}
+}
+
+void procesoAlmacen(ListaEntrada &LE,ListaSalida &LS,ListaKardex &LK,ListaProducto &LP,ListaFactura &LF)
+{
+	int op;
+
+   	printf("\n 1.Nueva entrada");
+   	printf("\n 2.Nueva salida");
+   	printf("\n 3.Mostrar kardex");
+   	printf("\n 4.Volver");
+   	op=leeEntero("\n\nIngrese opcion: ",1,4);
+   	switch(op)
+   	{
+   		case 1: busquedaFactura(LE,LK,LF,LP); break;
+      	case 2: leeListaSalida(LS,LK,LP); break;
+      	case 3: mostrarListaKardex(LK); break;
+      	case 4: break;
+   	}
+}
+
+void procesos(ListaFactura &LF,ListaProveedor &LPR,ListaProducto &LP,ListaEntrada &LE,ListaSalida &LS,ListaKardex &LK)
+{
+	int op;
+   	do
+   	{
+	   	system("cls");
+	   	printf("\n - Procesos -");
+	   	printf("\n=================");
+	   	printf("\n 1.Pedidos");
+	   	printf("\n 2.Compras");
+	   	printf("\n 3.Almacen");
+	   	printf("\n 4.Volver al Menu Principal");
+	   	op=leeEntero("\n\nIngrese opcion: ",1,4);
+	   	switch(op)
+	   	{
+	   		case 1: procesoPedidos(LP); break;
+	      	case 2: procesoCompra(LF,LPR,LP); break;
+	      	case 3: procesoAlmacen(LE,LS,LK,LP,LF); break;
+	       case 4: break;
+	   	}
+   	}while(op!=4);
+}
+
+void reporte03(ListaFactura &LF,ListaProducto &LP)
+{
+	NodoFactura *Aux=LF.cab;
+	float mayor=0.0;
+	if(LF.N>0)
+	{
+		while(Aux!=NULL)
+		{
+			if(Aux->F.total>mayor)
+				mayor=Aux->F.total;
+			Aux=Aux->sgte;
+		}
+      	printf("\n El mayor total registrado es de: %.2f",mayor);
+      	printf("\n\n Factura(s) que lo registra(n): ");
+		Aux=LF.cab;
+		while(Aux!=NULL)
+      	{
+			if(Aux->F.total==mayor)
+         	{
+            	printf("\n");
+				mostrarFactura(Aux->F,LP);
+         	}
+			Aux=Aux->sgte;          
+		}
+	}
+	else
+		printf("\n No hay Facturas...");
+   getch();
+}
+
+void ordenarlm(ListaMarca &LM)
+{
+	Marca aux;
+	if(LM.N>0)
+	{
+		for(int i=0;i<LM.N-1;i++)
+		{
+			for(int j=i+1;j<LM.N;j++)
+			{
+				if(stricmp(LM.Data[i].desMarca,LM.Data[j].desMarca)>0)
+				{
+					aux=LM.Data[i];
+					LM.Data[i]=LM.Data[j];
+					LM.Data[j]=aux;
+				}
+			}
+		}
+		printf("\n + Marcas ordenadas en forma ascendente por la descripcion");
+		printf("\n----------------------------------------");
+		for(int i=0;i<LM.N;i++)
+		{
+			printf("\n");
+			mostrarMarca(LM.Data[i],-1);
+		}
+		printf("\n========================================");
+	}
+	else
+		printf("\n No hay marcas...");
+}
+
+void ordenarlca(ListaCategoria &LCA)
+{
+	Categoria aux;
+	if(LCA.N>0)
+	{
+		for(int i=0;i<LCA.N-1;i++)
+		{
+			for(int j=i+1;j<LCA.N;j++)
+			{
+				if(stricmp(LCA.Data[i].desCategoria,LCA.Data[j].desCategoria)>0)
+				{
+					aux=LCA.Data[i];
+					LCA.Data[i]=LCA.Data[j];
+					LCA.Data[j]=aux;
+				}
+			}
+		}
+		printf("\n + Categorias ordenadas en forma ascendente por la descripcion");
+		printf("\n----------------------------------------");
+		for(int i=0;i<LCA.N;i++)
+		{
+			printf("\n");
+			mostrarCategoria(LCA.Data[i],-1);
+		}
+		printf("\n========================================");
+	}
+	else
+		printf("\n No hay categorias...");
+}
+
+void ordenarlc(ListaColor &LC)
+{
+	Color aux;
+	if(LC.N>0)
+	{
+		for(int i=0;i<LC.N-1;i++)
+		{
+			for(int j=i+1;j<LC.N;j++)
+			{
+				if(stricmp(LC.Data[i].desColor,LC.Data[j].desColor)>0)
+				{
+					aux=LC.Data[i];
+					LC.Data[i]=LC.Data[j];
+					LC.Data[j]=aux;
+				}
+			}
+		}
+		printf("\n + Colores ordenados en forma ascendente por la descripcion");
+		printf("\n----------------------------------------");
+		for(int i=0;i<LC.N;i++)
+		{
+			printf("\n");
+			mostrarColor(LC.Data[i],-1);
+		}
+		printf("\n========================================");
+	}
+	else
+		printf("\n No hay colores...");
+}
+
+void reporte04(ListaMarca &LM,ListaCategoria &LCA,ListaColor &LC)
+{
+	ordenarlm(LM);
+	printf("\n");
+	ordenarlca(LCA);
+	printf("\n");
+	ordenarlc(LC);
+   	getch();
+}
+
+void reporte05(ListaKardex &LK)
+{
+	NodoKardex *Aux1=LK.cab;
+  	NodoKardex *Aux2;
+  	Kardex K;
+   	if(LK.N>0)
+   	{
+   		while(Aux1->sgte!=NULL)
+      	{
+      		Aux2=Aux1->sgte;
+         	while(Aux2!=NULL)
+         	{
+         		if(comparaFechas(Aux1->K.fKardex,Aux2->K.fKardex)>0)
+            	{
+            		K=Aux1->K;
+              		Aux1->K=Aux2->K;
+              		Aux2->K=K;
+				}
+         		Aux2=Aux2->sgte;
+         	}
+      		Aux1=Aux1->sgte;
+      	}
+      	printf("\n + Kardex correctamente ordenado por fecha.");
+      	printf("\n\n Tipo Movimiento       Fecha       Numero de documento   Codigo(Producto)   Cantidad");
+      	printf("\n--------------------------------------------------------------------------------------");
+	   	NodoKardex *Aux=LK.cab;
+		while(Aux!=NULL)
+	   	{
+	     	mostrarKardex(Aux->K,-1);
+	     	Aux=Aux->sgte;
+	   	}
+	   	printf("\n=====================================================================================");
+  	}
+	else
+   		printf("\n No hay datos...");
+   	getch();
+}
+
+void reporte01(ListaEntrada &LE)
+{
+	Fecha min;
+   	Fecha max;
+   	iniciaFecha(min);
+   	iniciaFecha(max);
+	if(LE.N>0)
+   	{
+   		NodoEntrada *Aux=LE.cab;
+      	leeFecha("\n Ingrese fecha menor: ",min);
+      	do
+      	{
+      		leeFecha("\n Ingrese fecha mayor: ",max);
+      	}while(!(comparaFechas(max,min)>0));
+      	printf("\n");
+      	for(int i=0;i<20;i++)
+      		printf("====");
+      	while(Aux!=NULL)
+      	{
+      		if(comparaFechas(Aux->E.fEntrada,min)>0 && comparaFechas(Aux->E.fEntrada,max)<0)
+         		mostrarEntrada(Aux->E);
+         	Aux=Aux->sgte;
+      	}
+      	printf("\n");
+      	for(int i=0;i<20;i++)
+      		printf("====");
+   	}
+   	else
+   		printf("\nNo hay datos...");
+   	getch();
+}
+
+void reporte02(ListaSalida &LS)
+{
+	Fecha min;
+   	Fecha max;
+   	iniciaFecha(min);
+   	iniciaFecha(max);
+	if(LS.N>0)
+   	{
+   		NodoSalida *Aux=LS.cab;
+      	leeFecha("\n Ingrese fecha menor: ",min);
+      	do
+      	{
+      		leeFecha("\n Ingrese fecha mayor: ",max);
+      	}while(!(comparaFechas(max,min)>0));
+      	printf("\n");
+      	for(int i=0;i<20;i++)
+      		printf("====");
+      	while(Aux!=NULL)
+      	{
+      		if(comparaFechas(Aux->S.fSalida,min)>0 && comparaFechas(Aux->S.fSalida,max)<0)
+         		mostrarSalida(Aux->S);
+         	Aux=Aux->sgte;
+      	}
+      	printf("\n");
+      	for(int i=0;i<20;i++)
+      		printf("====");
+   	}
+   	else
+   		printf("\nNo hay datos...");
+   	getch();
+}
+
+void reportes(ListaEntrada &LE,ListaSalida &LS,ListaFactura &LF,ListaProducto &LP,ListaMarca &LM,ListaCategoria &LCA,ListaColor &LC,ListaKardex &LK)
+{
+	int op;
+   	do
+   	{
+	   	system("cls");
+	   	printf("\n - Reportes -");
+	   	printf("\n=================");
+	   	printf("\n 1.Entradas en un rango de fechas");
+	   	printf("\n 2.Salidas en un rango de fechas");
+	   	printf("\n 3.Factura que registra el mayor total");
+	   	printf("\n 4.Ordenar Marca, Categoria y Color alfabeticamente");
+      	printf("\n 5.Ordenar Kardex por fecha");
+      	printf("\n 6.Salir");
+   		op=leeEntero("\n\nIngrese opcion: ",1,6);
+   		switch(op)
+	   	{
+	   		case 1: reporte01(LE); break;
+	      	case 2: reporte02(LS); break;
+	      	case 3: reporte03(LF,LP); break;
+	       	case 4: reporte04(LM,LCA,LC); break;
+	       	case 5: reporte05(LK); break;
+	       	case 6: break;
+	   	}
+   	}while(op!=6);
+}
+
+void menu(ListaMarca &LM,ListaCategoria &LCA,ListaColor &LC,ListaProducto &LP,ListaProveedor &LPR,ListaTrabajador &LT,ListaFactura &LF,ListaEntrada &LE,ListaSalida &LS,ListaKardex &LK)
+{
+	int op;
+
+   	do
+   	{
+   		system("cls");
+    	printf("\n - Menu Principal -");
+    	printf("\n==================");
+		printf("\n  1. Mantenimiento");
+		printf("\n  2. Procesos");
+		printf("\n  3. Reportes");
+		printf("\n  4. Acerca de");
+		printf("\n  5. Salir");
+      	op=leeEntero("\n\nIngrese opcion: ",1,5);
+      	switch(op)
+      	{
+      		case 1: mantenimiento(LM,LCA,LC,LP,LPR,LT); break;
+         	case 2: procesos(LF,LPR,LP,LE,LS,LK); break;
+         	case 3: reportes(LE,LS,LF,LP,LM,LCA,LC,LK); break;
+         	case 4: acercade(); break;
+         	case 5: liberar(LM,LCA,LC,LP,LPR,LT,LF,LK,LE,LS); break;
+      	}
+   	}while(!(op==5));
+}
+
+main()
+{
+	ListaMarca LM;
+   	ListaCategoria LCA;
+   	ListaColor LC;
+   	ListaProducto LP;
+   	ListaProveedor LPR;
+   	ListaTrabajador LT;
+   	ListaFactura LF;
+   	ListaEntrada LE;
+   	ListaSalida LS;
+   	ListaKardex LK;
+
+   	iniciaListaMarca(LM);
+   	iniciaListaCategoria(LCA);
+   	iniciaListaColor(LC);
+	iniciaListaProducto(LP);
+   	iniciaListaProveedor(LPR);
+   	iniciaListaTrabajador(LT);
+   	iniciaListaFactura(LF);
+   	iniciaListaEntrada(LE);
+   	iniciaListaSalida(LS);
+   	iniciaListaKardex(LK);
+   	menu(LM,LCA,LC,LP,LPR,LT,LF,LE,LS,LK);
+}
