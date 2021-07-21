@@ -93,7 +93,7 @@ void mostrarMarca(Marca &M,int y)
 		gotoxy(11,y);
 	printf(" %s",M.desMarca);
 	if(y>-1)
-		gotoxy(35,y);
+		gotoxy(30,y);
 	if(M.estado==1)
 		printf(" Activa");
 	else
@@ -138,8 +138,8 @@ void mostrarListaMarca(ListaMarca &LM)
 
 	if(LM.N>0)
 	{
-		printf("\n Codigo   Descripcion             Estado");
-		printf("\n==========================================");
+		printf("\n Codigo   Descripcion        Estado");
+		printf("\n=====================================");
 		for(int i=0;i<LM.N;i++)
 		{
 			mostrarMarca(LM.Data[i],y);
@@ -301,7 +301,7 @@ void mostrarCategoria(Categoria &C,int y)
 		gotoxy(11,y);
 	printf(" %s",C.desCategoria);
 	if(y>-1)
-		gotoxy(27,y);
+		gotoxy(35,y);
 	if(C.estado==1)
 		printf(" Activa");
 	else
@@ -346,8 +346,8 @@ void mostrarListaCategoria(ListaCategoria &LCA)
 
 	if(LCA.N>0)
 	{
-		printf("\n Codigo   Descripcion     Estado");
-		printf("\n========================================");
+		printf("\n Codigo   Descripcion             Estado");
+		printf("\n==========================================");
 		for(int i=0;i<LCA.N;i++)
 		{
 			mostrarCategoria(LCA.Data[i],y);
@@ -805,28 +805,28 @@ void mostrarProducto(Producto &P,ListaMarca &LM,ListaCategoria &LCA,ListaColor &
 	printf("%s",P.codigo);
    	gotoxy(13,y);
 	printf("%s",P.descripcion);
-	gotoxy(63,y);
+	gotoxy(48,y);
    	for(int i=0;i<LM.N;i++)
    		if(strcmpi(P.codMarca,LM.Data[i].codMarca)==0)
       		pos=i;
 	printf("%s",LM.Data[pos].desMarca);
-   	gotoxy(75,y);
+   	gotoxy(60,y);
 	printf("%s",TGenero[P.genero-1]);
-   	gotoxy(84,y);
+   	gotoxy(69,y);
    	for(int i=0;i<LCA.N;i++)
    		if(strcmpi(P.codCategoria,LCA.Data[i].codCategoria)==0)
       		pos=i;
 	printf("%s",LCA.Data[pos].desCategoria);
-   	gotoxy(105,y);
+   	gotoxy(90,y);
 	printf("%d",P.talla);
-   	gotoxy(113,y);
+   	gotoxy(98,y);
    	for(int i=0;i<LC.N;i++)
    		if(strcmpi(P.codColor,LC.Data[i].codColor)==0)
       		pos=i;
 	printf("%s",LC.Data[pos].desColor);
-   	gotoxy(129,y);
+   	gotoxy(108,y);
 	printf("%.2f",P.precio);
-   	gotoxy(140,y);
+   	gotoxy(117,y);
 	if(P.estado==1)
 		printf("Activo");
 	else
@@ -875,8 +875,8 @@ void mostrarListaProducto(ListaProducto &LP,ListaMarca &LM,ListaCategoria &LCA,L
 
 	if(LP.N>0)
    	{
-      	printf("\n Codigo     Descripcion                         Marca       Genero   Categoria            Talla   Color           Precio     Estado");
-      	printf("\n=====================================================================================================================================\n");
+      	printf("\n Codigo     Descripcion                         Marca       Genero   Categoria          Talla   Color      Precio     Estado");
+      	printf("\n==============================================================================================================================\n");
 		while(Aux!=NULL)
       	{
 			mostrarProducto(Aux->P,LM,LCA,LC,y);
@@ -2997,10 +2997,12 @@ void reporte05(ListaKardex &LK)
       	printf("\n Tipo Movimiento       Fecha           Numero de documento   Codigo(Producto)   Cantidad");
       	printf("\n-----------------------------------------------------------------------------------------");
 	   	NodoKardex *Aux=LK.cab;
+	   	int y = 15;
 		while(Aux!=NULL)
 	   	{
 			printf("\n");
-	     	mostrarKardex(Aux->K,-1);
+	     	mostrarKardex(Aux->K,y);
+	     	y++;
 	     	Aux=Aux->sgte;
 	   	}
 	   	printf("\n=========================================================================================");
